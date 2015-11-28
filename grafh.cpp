@@ -220,8 +220,6 @@ void onInitialization( ) {
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 	
 	glEnable(GL_DEPTH_TEST);
-
-	glEnable(GL_LIGHTING);
 	
 	glEnable(GL_LIGHT0);
 	float Ia[4] = {0.1, 0.1, 0.1, 1}, Id[4] = {1.0, 1.0, 1.0, 1}, Is[4] = {2, 2, 2, 1};
@@ -259,6 +257,9 @@ void onDisplay( ) {
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);		// torlesi szin beallitasa
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // kepernyo torles
 
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+
 	glPushMatrix();
 	glTranslatef(0,-.5,0);
 	glBegin( GL_QUADS );
@@ -274,8 +275,25 @@ void onDisplay( ) {
 	glEnd( );
 	glPopMatrix();
 
-	glColor3f(1, 1, 1);
 	drawCube(Vector(1,1,1));
+
+	float lightdir[3] = {-1,1,-1};
+
+	float shadow_mtx[4][4] = {1,                         0,       0,                       0,
+		                      -lightdir[0]/lightdir[1],  0,     -lightdir[2]/lightdir[1],  0,
+							   0,                        0,      1,                        0,
+							   0,                    0.001,      0,                        1};
+
+	glPushMatrix();
+	glTranslatef(0,-.5,0);
+
+	glMultMatrixf( &shadow_mtx[0][0] );
+	glDisable(GL_LIGHTING);
+	glColor3f(0, 0, 0);
+	drawCube(Vector(1,1,1));
+	
+	glPopMatrix();
+
 
 	glutSwapBuffers();     				// Buffercsere: rajzolas vege
 
