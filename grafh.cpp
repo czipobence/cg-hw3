@@ -145,6 +145,20 @@ void glMaterialfv(GLenum face, GLenum p, Color c) {
 	glMaterialfv(face,p,arr);
 }
 
+void drawQuad(const Vector& a, const Vector& b, const Vector& c, const Vector& d) {
+  Vector normal = ((c-a) % (b-a)).norm();
+  glMaterialfv( GL_FRONT, GL_DIFFUSE,Color(fabs(normal.x),fabs(normal.y),fabs(normal.z)));
+  glNormal3f(normal.x, normal.y, normal.z);
+  glVertex3f(a); glVertex3f(b); glVertex3f(c); glVertex3f(d);
+}
+
+void drawQuad(const Vector& a, const Vector& b, const Vector& c, const Vector& d, const Vector& normal) {
+  glMaterialfv( GL_FRONT, GL_DIFFUSE,Color(fabs(normal.x),fabs(normal.y),fabs(normal.z)));
+  glNormal3f(normal.x, normal.y, normal.z);
+  glVertex3f(a); glVertex3f(b); glVertex3f(c); glVertex3f(d);	
+}
+
+
 struct Drawable {
 	virtual void draw() = 0;
 	virtual ~Drawable() {};
@@ -183,11 +197,18 @@ struct UVDrawable : public Drawable {
 	virtual Vector getNorm(float u, float v) = 0;
 
 	void draw (){
+		
+        glBegin(GL_QUADS);
+		
 		for (float u = uMin; u <uMax;u += du) {
 			for (float v = vMin; v < vMax; v+= dv) {
-				//DO SG
+				drawQuad(getVal(u,v),getVal(u+du,v),getVal(u+du,v+dv),getVal(u,v+dv),getNorm(u,v));
 			}
 		}
+		
+		glEnd();
+		
+		
 	}
 	
 	virtual ~UVDrawable(){}
@@ -246,13 +267,6 @@ struct Camera {
 	}
 };
 
-void glQuad(const Vector& a, const Vector& b, const Vector& c, const Vector& d) {
-  Vector normal = ((c-a) % (b-a)).norm();
-  glMaterialfv( GL_FRONT, GL_DIFFUSE,Color(fabs(normal.x),fabs(normal.y),fabs(normal.z)));
-  glNormal3f(normal.x, normal.y, normal.z);
-  glVertex3f(a); glVertex3f(b); glVertex3f(c); glVertex3f(d);
-}
-
 void drawCube(const Vector& size) {
 	
 	glPushMatrix();
@@ -273,11 +287,9 @@ void drawCube(const Vector& size) {
     Vector A(+s.x, +s.y, -s.z), B(+s.x, +s.y, +s.z), C(+s.x, -s.y, +s.z), D(+s.x, -s.y, -s.z), 
            E(-s.x, +s.y, -s.z), F(-s.x, +s.y, +s.z), G(-s.x, -s.y, +s.z), H(-s.x, -s.y, -s.z);
 
-    glQuad(A, B, C, D); glQuad(E, H, G, F); glQuad(A, E, F, B);
-    glQuad(D, C, G, H); glQuad(B, F, G, C); glQuad(A, D, H, E);
     
-    glQuad(A, D, C, B); glQuad(E, F, G, H); glQuad(A, B, F, E);
-    glQuad(D, H, G, C); glQuad(B, C, G, F); glQuad(A, E, H, D);
+    drawQuad(A, D, C, B); drawQuad(E, F, G, H); drawQuad(A, B, F, E);
+    drawQuad(D, H, G, C); drawQuad(B, C, G, F); drawQuad(A, E, H, D);
 
   } glEnd();
   glPopMatrix();
