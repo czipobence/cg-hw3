@@ -192,13 +192,34 @@ struct UVDrawable : public Drawable {
 };
 
 struct Sphere: public UVDrawable {
-	Vector getVal(float u, float v) {return Vector(0,0,0);}
-	Vector getNorm(float u, float v) {return Vector(0,0,0);}
+	Vector p;
+	float r;
+	
+	Sphere(Vector center, float radius = 1): p(center),r(radius) {} 
+	
+	Vector getVal(float u, float v) {
+		return Vector (
+			(float)(r * cos(u) * sin (v)),
+			(float)(r * sin(u) * sin (v)),
+			(float)(r * cos(v))
+		);
+	}
+	
+	Vector getNorm(float u, float v) {return (getVal(u,v) - p).norm();}
 	
 };
 
 struct Csirguru: public Drawable {
+	static const float HEAD_POS_X = 0.0f;
+	static const float HEAD_POS_Y = 0.0f;
+	static const float HEAD_POS_Z = 0.0f;
+	static const float HEAD_RADIUS = 1.0f;
+	Vector p;
 	Sphere head;
+	
+	Csirguru (Vector middle): p(middle), 
+					head(p+Vector(HEAD_POS_X,HEAD_POS_Y,HEAD_POS_Z),HEAD_RADIUS) {}
+	
 	void draw() {
 		head.draw();
 	}
