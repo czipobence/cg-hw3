@@ -172,9 +172,12 @@ struct Plain : public Drawable {
 struct UVDrawable : public Drawable {
 	float uMin,uMax,du,vMin,vMax,dv;
 	
-	UVDrawable(	float uMin=0, float uMax = 1*M_PI, float du = .1,
-				float vMin=0, float vMax = 2*M_PI, float dv = .1):
-				uMin(uMin),uMax(uMax),du(du),vMin(vMin),vMax(vMax),dv(dv) {}
+	UVDrawable(	float uMin=0, float uMax = 1*M_PI, int nu = 30,
+				float vMin=0, float vMax = 2*M_PI, int nv = 30):
+				uMin(uMin),uMax(uMax),vMin(vMin),vMax(vMax) {
+					du = (uMax - uMin) / (float)nu;
+					dv = (vMax - vMin) / (float)nv;
+				}
 
 	virtual Vector getVal(float u, float v) = 0;
 	virtual Vector getNorm(float u, float v) = 0;
