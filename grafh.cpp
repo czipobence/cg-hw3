@@ -169,16 +169,56 @@ struct Plain : public Drawable {
 	}
 };
 
+struct UVDrawable : public Drawable {
+	float uMin,uMax,du,vMin,vMax,dv;
+	
+	UVDrawable(	float uMin=0, float uMax = 1*M_PI, float du = .1,
+				float vMin=0, float vMax = 2*M_PI, float dv = .1):
+				uMin(uMin),uMax(uMax),du(du),vMin(vMin),vMax(vMax),dv(dv) {}
+
+	virtual Vector getVal(float u, float v) = 0;
+	virtual Vector getNorm(float u, float v) = 0;
+
+	void draw (){
+		for (float u = uMin; u <uMax;u += du) {
+			for (float v = vMin; v < vMax; v+= dv) {
+				//DO SG
+			}
+		}
+	}
+	
+	virtual ~UVDrawable(){}
+
+};
+
+struct Sphere: public UVDrawable {
+	Vector getVal(float u, float v) {return Vector(0,0,0);}
+	Vector getNorm(float u, float v) {return Vector(0,0,0);}
+	
+};
+
+struct Csirguru: public Drawable {
+	Sphere head;
+	void draw() {
+		head.draw();
+	}
+};
+
 ////////////////////////////////////////////////////////////////////////
 
 struct Camera {
-	Vector pos,dir,up;
+	Vector pos,dir,up, eye;
 	
 	
-	Camera(Vector pos, Vector dir, Vector up): pos(pos), dir(dir), up(up) {} 
+	Camera(	Vector pos=Vector(-3,2,-2), 
+			Vector dir=Vector(3,-2,2), 
+			Vector up=Vector(0,1,0)):
+			pos(pos), dir(dir), up(up) {
+				eye = pos + dir;
+			} 
 	
 	void set() {
-		gluLookAt(dir.x,dir.y,dir.z,pos.x,pos.y,pos.z,up.x,up.y,up.z);
+		gluLookAt(pos.x,pos.y,pos.z,eye.x,eye.y,eye.z,up.x,up.y,up.z);
 	}
 };
 
@@ -190,6 +230,10 @@ void glQuad(const Vector& a, const Vector& b, const Vector& c, const Vector& d) 
 }
 
 void drawCube(const Vector& size) {
+	
+	glPushMatrix();
+	glTranslatef(4,.5,0);
+	
   glBegin(GL_QUADS); {
     /*       (E)-----(A)
              /|      /|
@@ -212,9 +256,16 @@ void drawCube(const Vector& size) {
     glQuad(D, H, G, C); glQuad(B, C, G, F); glQuad(A, E, H, D);
 
   } glEnd();
+  glPopMatrix();
 }
 
 ////////////////////////////////////////////////////////////////////////
+
+struct World {
+	Camera cam;
+};
+
+World world;
 
 void onInitialization( ) { 
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -243,11 +294,12 @@ void onDisplay( ) {
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(60, 1, 0.1, 10);
+	gluPerspective(60, (float)SCREEN_WIDTH/(float)SCREEN_HEIGHT, 0.1, 100);
 	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(-3, 2, -2, 0, 0, 0, 0, 1, 0);
+	world.cam.set();
+	//gluLookAt(-3, 2, -2, 0, 0, 0, 0, 1, 0);
 	
 	float p[4] = {-1, 1, -1, 0};
 	glLightfv(GL_LIGHT0, GL_POSITION, p);
@@ -260,8 +312,7 @@ void onDisplay( ) {
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 
-	glPushMatrix();
-	glTranslatef(0,-.5,0);
+	
 	glBegin( GL_QUADS );
 	for( int x = -10; x < 10; x++ ) {
 		for( int z = -10; z < 10; z++ ) {
@@ -273,27 +324,27 @@ void onDisplay( ) {
 		}
 	}
 	glEnd( );
-	glPopMatrix();
 
+	
 	drawCube(Vector(1,1,1));
 
-	float lightdir[3] = {-1,1,-1};
+	
+
+	float lightdir[3] = {1,1,1};
 
 	float shadow_mtx[4][4] = {1,                         0,       0,                       0,
 		                      -lightdir[0]/lightdir[1],  0,     -lightdir[2]/lightdir[1],  0,
 							   0,                        0,      1,                        0,
 							   0,                    0.001,      0,                        1};
 
-	glPushMatrix();
-	glTranslatef(0,-.5,0);
 
 	glMultMatrixf( &shadow_mtx[0][0] );
 	glDisable(GL_LIGHTING);
 	glColor3f(0, 0, 0);
-	drawCube(Vector(1,1,1));
 	
-	glPopMatrix();
-
+	
+	
+	drawCube(Vector(1,1,1));
 
 	glutSwapBuffers();     				// Buffercsere: rajzolas vege
 
