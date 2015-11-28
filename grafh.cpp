@@ -127,19 +127,30 @@ struct Color {
    }
 };
 
+const Color WHITE(1,1,1);
+const Color GRAY(.2,.2,.2);
+
 const int SCREEN_WIDTH = 600;	// alkalmazás ablak felbontása
 const int SCREEN_HEIGHT = 600;
 
 
 Color image[SCREEN_WIDTH*SCREEN_HEIGHT];	// egy alkalmazás ablaknyi kép
 
+void glVertex3f(const Vector& v) {
+  glVertex3f(v.x, v.y, v.z);
+}
+
+void glMaterialfv(GLenum face, GLenum p, Color c) {
+	float arr[4] = {c.r,c.g,c.b,1};
+	glMaterialfv(face,p,arr);
+}
 
 struct Drawable {
 	virtual void draw() = 0;
 	virtual ~Drawable() {};
 };
 
-/*struct Plain : public Drawable {
+struct Plain : public Drawable {
 	Vector p, n;
 	Plain (const Vector& _p, const Vector & _n) : p(_p), n(_n) {}
 	void draw() {
@@ -157,29 +168,22 @@ struct Drawable {
 			
 	}
 };
-*/
+
 ////////////////////////////////////////////////////////////////////////
 
 struct Camera {
-	Vector eye, cen, up;
+	Vector pos,dir,up;
 	
-	Camera(Vector _e, Vector _c, Vector _u): eye(_e), cen(_c), up(_u) {}
+	
+	Camera(Vector pos, Vector dir, Vector up): pos(pos), dir(dir), up(up) {} 
+	
 	void set() {
-		gluLookAt(eye.x,eye.y,eye.z,cen.x,cen.y,cen.z,up.x,up.y,up.z);
+		gluLookAt(dir.x,dir.y,dir.z,pos.x,pos.y,pos.z,up.x,up.y,up.z);
 	}
 };
 
-void glVertex3f(const Vector& v) {
-  glVertex3f(v.x, v.y, v.z);
-}
-
-void glMaterialfv(GLenum face, GLenum p, Color c) {
-	float arr[4] = {c.r,c.g,c.b,1};
-	glMaterialfv(face,p,arr);
-}
-
 void glQuad(const Vector& a, const Vector& b, const Vector& c, const Vector& d) {
-  Vector normal = ((b-a) % (c-a)).norm();
+  Vector normal = ((c-a) % (b-a)).norm();
   glMaterialfv( GL_FRONT, GL_DIFFUSE,Color(fabs(normal.x),fabs(normal.y),fabs(normal.z)));
   glNormal3f(normal.x, normal.y, normal.z);
   glVertex3f(a); glVertex3f(b); glVertex3f(c); glVertex3f(d);
@@ -203,6 +207,9 @@ void drawCube(const Vector& size) {
 
     glQuad(A, B, C, D); glQuad(E, H, G, F); glQuad(A, E, F, B);
     glQuad(D, C, G, H); glQuad(B, F, G, C); glQuad(A, D, H, E);
+    
+    glQuad(A, D, C, B); glQuad(E, F, G, H); glQuad(A, B, F, E);
+    glQuad(D, H, G, C); glQuad(B, C, G, F); glQuad(A, E, H, D);
 
   } glEnd();
 }
@@ -226,6 +233,10 @@ void onInitialization( ) {
 	glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 1.0f);
 	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.0f);
 	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.0f);
+	
+	glFrontFace(GL_CW);
+	glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
 
 }
 
@@ -248,6 +259,21 @@ void onDisplay( ) {
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);		// torlesi szin beallitasa
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // kepernyo torles
 
+	glPushMatrix();
+	glTranslatef(0,-.5,0);
+	glBegin( GL_QUADS );
+	for( int x = -10; x < 10; x++ ) {
+		for( int z = -10; z < 10; z++ ) {
+			glMaterialfv( GL_FRONT, GL_DIFFUSE, (x ^ z) & 1 ? WHITE : GRAY);
+			glVertex3f(x * 1,     0, z * 1);
+			glVertex3f((x+1) * 1, 0, z * 1);
+			glVertex3f((x+1) * 1, 0, (z+1) * 1);
+			glVertex3f(x * 1,     0, (z+1) * 1);
+		}
+	}
+	glEnd( );
+	glPopMatrix();
+
 	glColor3f(1, 1, 1);
 	drawCube(Vector(1,1,1));
 
@@ -262,7 +288,51 @@ void onKeyboard(unsigned char key, int x, int y) {
     if (key == 'd') glutPostRedisplay( ); //MOVE RIGHT
     if (key == 'y') glutPostRedisplay( ); //MOVE DOWN
     if (key == ' ') glutPostRedisplay( ); //THROW BOMB
-
+    
+   /*float UNIT = .5;
+	if (key == 'a') {
+		camPos = camPos - world.cam.right * UNIT;
+		glutPostRedisplay( );
+	}
+	if (key == 'd') {
+		camPos = camPos + world.cam.right * UNIT;
+		glutPostRedisplay( );
+	}
+	if (key == 'w') {
+		camPos = camPos + world.cam.dir * UNIT;
+		glutPostRedisplay( );
+	}
+	if (key == 's') {
+		camPos = camPos - world.cam.dir * UNIT;
+		glutPostRedisplay( );
+	}
+	if (key == 'r') {
+		camPos = camPos + world.cam.up * UNIT;
+		glutPostRedisplay( );
+	}
+	if (key == 'f') {
+		camPos = camPos - world.cam.up * UNIT;
+		glutPostRedisplay( );
+	}
+	if (key == '6') {
+		camFwd = (camFwd % camUp + camFwd * 3) / 4; 
+		glutPostRedisplay( );
+	}
+	if (key == '4') {
+		camFwd = (camUp % camFwd + camFwd * 3) / 4; 
+		glutPostRedisplay( );
+	}
+	if (key == '8') {
+		camFwd = (world.cam.right % world.cam.dir + world.cam.dir*3) / 4; 
+		camUp = world.cam.right % world.cam.dir;
+		glutPostRedisplay( );
+	}
+	if (key == '2') {
+		camFwd = (world.cam.dir % world.cam.right + world.cam.dir*3) / 4; 
+		camUp = world.cam.right % world.cam.dir;
+		glutPostRedisplay( );
+	}
+	*/
 }
 
 // Billentyuzet esemenyeket lekezelo fuggveny (felengedes)
