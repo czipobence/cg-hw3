@@ -62,6 +62,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Innentol modosithatod...
 
+const float EPSILON = 0.001f;
+
 //--------------------------------------------------------
 // 3D Vektor
 //--------------------------------------------------------
@@ -74,22 +76,32 @@ struct Vector {
    Vector(float x0, float y0, float z0 = 0) { 
 	x = x0; y = y0; z = z0;
    }
-   Vector operator*(float a) { 
+   Vector operator*(float a) const { 
 	return Vector(x * a, y * a, z * a); 
    }
-   Vector operator+(const Vector& v) {
+   Vector operator/(float a) const {
+	return (*this) * (1.0 / a);
+   }
+   Vector operator+(const Vector& v) const {
  	return Vector(x + v.x, y + v.y, z + v.z); 
    }
-   Vector operator-(const Vector& v) {
+   Vector operator-(const Vector& v) const {
  	return Vector(x - v.x, y - v.y, z - v.z); 
    }
-   float operator*(const Vector& v) { 	// dot product
+   float operator*(const Vector& v) const { 	// dot product
 	return (x * v.x + y * v.y + z * v.z); 
    }
-   Vector operator%(const Vector& v) { 	// cross product
+   Vector operator%(const Vector& v) const { 	// cross product
 	return Vector(y*v.z-z*v.y, z*v.x - x*v.z, x*v.y - y*v.x);
    }
-   float Length() { return sqrt(x * x + y * y + z * z); }
+   bool operator==(const Vector& v) {
+	return (*this - v).Length() < EPSILON;
+   }
+  
+   float Length() const { return sqrt(x * x + y * y + z * z); }
+   float Dist(Vector v) const { return (*this - v).Length(); }
+   Vector norm() const {return *this * (1 / this->Length()); }
+   
 };
  
 //--------------------------------------------------------
@@ -115,40 +127,82 @@ struct Color {
    }
 };
 
-const int screenWidth = 600;	// alkalmazás ablak felbontása
-const int screenHeight = 600;
+const int SCREEN_WIDTH = 600;	// alkalmazás ablak felbontása
+const int SCREEN_HEIGHT = 600;
 
 
-Color image[screenWidth*screenHeight];	// egy alkalmazás ablaknyi kép
+Color image[SCREEN_WIDTH*SCREEN_HEIGHT];	// egy alkalmazás ablaknyi kép
 
 
-// Inicializacio, a program futasanak kezdeten, az OpenGL kontextus letrehozasa utan hivodik meg (ld. main() fv.)
+////////////////////////////////////////////////////////////////////////
+
+void glVertex3f(const Vector& v) {
+  glVertex3f(v.x, v.y, v.z);
+}
+
+void glQuad(const Vector& a, const Vector& b, const Vector& c, const Vector& d) {
+  Vector normal = ((b-a) % (c-a)).norm();
+  glColor3f(fabs(normal.x), fabs(normal.y), fabs(normal.z));
+  glNormal3f(normal.x, normal.y, normal.z);
+  glVertex3f(a); glVertex3f(b); glVertex3f(c); glVertex3f(d);
+}
+
+void drawCube(const Vector& size) {
+  glBegin(GL_QUADS); {
+    /*       (E)-----(A)
+             /|      /|
+            / |     / |
+          (F)-----(B) |
+           | (H)---|-(D)
+           | /     | /
+           |/      |/
+          (G)-----(C)        */
+
+    Vector s = size / 2;
+
+    Vector A(+s.x, +s.y, -s.z), B(+s.x, +s.y, +s.z), C(+s.x, -s.y, +s.z), D(+s.x, -s.y, -s.z), 
+           E(-s.x, +s.y, -s.z), F(-s.x, +s.y, +s.z), G(-s.x, -s.y, +s.z), H(-s.x, -s.y, -s.z);
+
+    glQuad(A, B, C, D); glQuad(E, H, G, F); glQuad(A, E, F, B);
+    glQuad(D, C, G, H); glQuad(B, F, G, C); glQuad(A, D, H, E);
+
+  } glEnd();
+}
+
+////////////////////////////////////////////////////////////////////////
+
 void onInitialization( ) { 
-	glViewport(0, 0, screenWidth, screenHeight);
-
-    // Peldakent keszitunk egy kepet az operativ memoriaba
-    for(int Y = 0; Y < screenHeight; Y++)
-		for(int X = 0; X < screenWidth; X++)
-			image[Y*screenWidth + X] = Color((float)X/screenWidth, (float)Y/screenHeight, 0);
+	//glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	
+	glEnable(GL_DEPTH_TEST);
+	glMatrixMode(GL_PROJECTION);
+	gluPerspective(60, 1, 0.1, 10);
+	glMatrixMode(GL_MODELVIEW);
+	gluLookAt(-3, 2, -2, 0, 0, 0, 0, 1, 0);
+	
+	glEnable(GL_LIGHTING);
+	glEnable(GL_COLOR_MATERIAL);
+	
+	glEnable(GL_LIGHT0);
+	float p[4] = {-1.1f, 2.0f, -1.2f, 1};
+	glLightfv(GL_LIGHT0, GL_POSITION, p);
+	float c[4] = {0.9f, 0.9f, 0.9f, 1.0f};
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, c);
+	glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 1.0f);
+	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.0f);
+	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.0f);
 
 }
 
 // Rajzolas, ha az alkalmazas ablak ervenytelenne valik, akkor ez a fuggveny hivodik meg
 void onDisplay( ) {
-    glClearColor(0.1f, 0.2f, 0.3f, 1.0f);		// torlesi szin beallitasa
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);		// torlesi szin beallitasa
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // kepernyo torles
 
     // ..
 
-    // Peldakent atmasoljuk a kepet a rasztertarba
-    glDrawPixels(screenWidth, screenHeight, GL_RGB, GL_FLOAT, image);
-    // Majd rajzolunk egy kek haromszoget
-	glColor3f(0, 0, 1);
-	glBegin(GL_TRIANGLES);
-		glVertex2f(-0.2f, -0.2f);
-		glVertex2f( 0.2f, -0.2f);
-		glVertex2f( 0.0f,  0.2f);
-	glEnd( );
+  glColor3f(1, 1, 1);
+  drawCube(Vector(1,1,1));
 
     // ...
 
@@ -158,7 +212,11 @@ void onDisplay( ) {
 
 // Billentyuzet esemenyeket lekezelo fuggveny (lenyomas)
 void onKeyboard(unsigned char key, int x, int y) {
-    if (key == 'd') glutPostRedisplay( ); 		// d beture rajzold ujra a kepet
+	if (key == 'a') glutPostRedisplay( ); //MOVE LEFT 
+    if (key == 'w') glutPostRedisplay( ); //MOVE UP
+    if (key == 'd') glutPostRedisplay( ); //MOVE RIGHT
+    if (key == 'y') glutPostRedisplay( ); //MOVE DOWN
+    if (key == 'y') glutPostRedisplay( ); //THROW BOMB
 
 }
 
@@ -181,7 +239,6 @@ void onMouseMotion(int x, int y)
 
 // `Idle' esemenykezelo, jelzi, hogy az ido telik, az Idle esemenyek frekvenciajara csak a 0 a garantalt minimalis ertek
 void onIdle( ) {
-     long time = glutGet(GLUT_ELAPSED_TIME);		// program inditasa ota eltelt ido
 
 }
 
