@@ -134,15 +134,53 @@ const int SCREEN_HEIGHT = 600;
 Color image[SCREEN_WIDTH*SCREEN_HEIGHT];	// egy alkalmazás ablaknyi kép
 
 
+struct Drawable {
+	virtual void draw() = 0;
+	virtual ~Drawable() {};
+};
+
+/*struct Plain : public Drawable {
+	Vector p, n;
+	Plain (const Vector& _p, const Vector & _n) : p(_p), n(_n) {}
+	void draw() {
+		glBegin( GL_QUADS );
+		for( int x = -20; x < 20; x++ ) {
+			for( int z = -20; z < 20; z++ ) {
+				glMaterialfv( GL_FRONT, GL_DIFFUSE, (x ^ z) & 1 ? WHITE : GRAY);
+				glVertex3f(x * 1,     0, z * 1);
+				glVertex3f((x+1) * 1, 0, z * 1);
+				glVertex3f((x+1) * 1, 0, (z+1) * 1);
+				glVertex3f(x * 1,     0, (z+1) * 1);
+			}
+		}
+		glEnd( );	
+			
+	}
+};
+*/
 ////////////////////////////////////////////////////////////////////////
+
+struct Camera {
+	Vector eye, cen, up;
+	
+	Camera(Vector _e, Vector _c, Vector _u): eye(_e), cen(_c), up(_u) {}
+	void set() {
+		gluLookAt(eye.x,eye.y,eye.z,cen.x,cen.y,cen.z,up.x,up.y,up.z);
+	}
+};
 
 void glVertex3f(const Vector& v) {
   glVertex3f(v.x, v.y, v.z);
 }
 
+void glMaterialfv(GLenum face, GLenum p, Color c) {
+	float arr[4] = {c.r,c.g,c.b,1};
+	glMaterialfv(face,p,arr);
+}
+
 void glQuad(const Vector& a, const Vector& b, const Vector& c, const Vector& d) {
   Vector normal = ((b-a) % (c-a)).norm();
-  glColor3f(fabs(normal.x), fabs(normal.y), fabs(normal.z));
+  glMaterialfv( GL_FRONT, GL_DIFFUSE,Color(fabs(normal.x),fabs(normal.y),fabs(normal.z)));
   glNormal3f(normal.x, normal.y, normal.z);
   glVertex3f(a); glVertex3f(b); glVertex3f(c); glVertex3f(d);
 }
@@ -172,22 +210,19 @@ void drawCube(const Vector& size) {
 ////////////////////////////////////////////////////////////////////////
 
 void onInitialization( ) { 
-	//glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 	
 	glEnable(GL_DEPTH_TEST);
-	glMatrixMode(GL_PROJECTION);
-	gluPerspective(60, 1, 0.1, 10);
-	glMatrixMode(GL_MODELVIEW);
-	gluLookAt(-3, 2, -2, 0, 0, 0, 0, 1, 0);
-	
+
 	glEnable(GL_LIGHTING);
-	glEnable(GL_COLOR_MATERIAL);
 	
 	glEnable(GL_LIGHT0);
-	float p[4] = {-1.1f, 2.0f, -1.2f, 1};
-	glLightfv(GL_LIGHT0, GL_POSITION, p);
-	float c[4] = {0.9f, 0.9f, 0.9f, 1.0f};
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, c);
+	float Ia[4] = {0.1, 0.1, 0.1, 1}, Id[4] = {1.0, 1.0, 1.0, 1}, Is[4] = {2, 2, 2, 1};
+	
+	glLightfv(GL_LIGHT0, GL_AMBIENT, Ia);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, Id);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, Is);
+	
 	glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 1.0f);
 	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.0f);
 	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.0f);
@@ -196,17 +231,27 @@ void onInitialization( ) {
 
 // Rajzolas, ha az alkalmazas ablak ervenytelenne valik, akkor ez a fuggveny hivodik meg
 void onDisplay( ) {
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);		// torlesi szin beallitasa
+	
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(60, 1, 0.1, 10);
+	
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(-3, 2, -2, 0, 0, 0, 0, 1, 0);
+	
+	float p[4] = {-1, 1, -1, 0};
+	glLightfv(GL_LIGHT0, GL_POSITION, p);
+
+	
+	
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);		// torlesi szin beallitasa
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // kepernyo torles
 
-    // ..
+	glColor3f(1, 1, 1);
+	drawCube(Vector(1,1,1));
 
-  glColor3f(1, 1, 1);
-  drawCube(Vector(1,1,1));
-
-    // ...
-
-    glutSwapBuffers();     				// Buffercsere: rajzolas vege
+	glutSwapBuffers();     				// Buffercsere: rajzolas vege
 
 }
 
@@ -216,7 +261,7 @@ void onKeyboard(unsigned char key, int x, int y) {
     if (key == 'w') glutPostRedisplay( ); //MOVE UP
     if (key == 'd') glutPostRedisplay( ); //MOVE RIGHT
     if (key == 'y') glutPostRedisplay( ); //MOVE DOWN
-    if (key == 'y') glutPostRedisplay( ); //THROW BOMB
+    if (key == ' ') glutPostRedisplay( ); //THROW BOMB
 
 }
 
