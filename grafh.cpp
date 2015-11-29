@@ -224,8 +224,7 @@ struct BezierCurve : ColoredDrawable {
 		num = 0;
 	}
 
-	float B(int i, float t) {
-		int n = num-1;
+	float B(int n, int i, float t) {
 		float choose = 1;
       	for(int j = 1; j <= i; j++) choose *= (float)(n-j+1)/j;
       	return choose * pow(t, i) * pow(1-t, n-i);
@@ -240,10 +239,18 @@ struct BezierCurve : ColoredDrawable {
 
 	Vector r(float t) {
 		Vector rr(0,0,0);
-      	for(int i = 0; i < num; i++)
-			rr = rr + cps[i] * B(i,t);
+		for(int i = 0; i < num; i++)
+			rr = rr + cps[i] * B(num-1,i,t);
       	return rr;
-   }
+	}
+   
+	//http://www.cs.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/Bezier/bezier-der.html
+	Vector der(float t) {
+		Vector rr(0,0,0);
+		for(int i = 0; i < num-1; i++)
+			rr = rr + (cps[i+1] - cps[i]) * B(num-2,i,t);
+      	return rr;
+	}
    
 	void drawItem() {
 	
@@ -258,11 +265,81 @@ struct BezierCurve : ColoredDrawable {
 	
 	glEnd();
 	
+	glBegin(GL_LINE_STRIP);
+	
+	for (int i = 0; i<num;i++) {
+		glVertex3f(cps[i]);
+	}
+	
+	glEnd();
+	
+	
 	glDisable(GL_COLOR_MATERIAL);   
 	}
    
    
    
+};
+
+struct Hermite {
+	Vector p0, p1, v0, v1;
+	long t0, t1;
+	
+	Hermite() {
+	p0 = p1 = v0 = v1 = Vector(0,0);
+	t0 = t1 = 0;
+	}
+	
+	Hermite(Vector p0, Vector p1, Vector v0, Vector v1, long t0, long t1)
+	: p0(p0), p1(p1), v0(v0),v1(v1),t0(t0),t1(t1) {}
+	
+	Vector getVal(float t) {
+		float dt1 = t - t0;
+		float dt = t1 - t0;
+		
+		Vector a0 = p0;
+		Vector a1 = v0;
+		Vector a2 = (p1- p0) * (3.0 / (dt * dt)) - (v1 + v0 * 2.0) * (1.0 / dt) ;
+		Vector a3 = (p0 - p1) * (2.0 / dt / dt / dt) + (v0 + v1) * (1.0 / dt / dt);
+		return (a3 * dt1 * dt1 * dt1 + a2 * dt1 * dt1 + a1 * dt1 + a0); 
+	}
+	
+	Vector getDerived(float t) {
+		float dt1 = t - t0;
+		float dt = t1 - t0;
+		
+		Vector a1 = v0;
+		Vector a2 = (p1- p0) * (3.0 / (dt * dt)) - (v1 + v0 * 2.0) * (1.0 / dt) ;
+		Vector a3 = (p0 - p1) * (2.0 / dt / dt / dt) + (v0 + v1) * (1.0 / dt / dt);
+		return (a3 * dt1 * dt1 * 3 + a2 * dt1 * 2 + a1); 
+	}
+	
+};
+
+struct CatmullRom {
+	Hermite splines[10];
+	int n;
+	Vector lp, lv;
+	
+	CatmullRom(Vector sp, Vector sv): lp(sp), lv(sv) {n = 0;}
+	
+	void addSpline(Vector p, Vector v) {
+		if (n < 10) {
+			splines[n] = Hermite(lp,p,lv,v,n,n+1);
+			lp = p;
+			lv = v;
+			n++;
+		}
+	}
+	
+	Vector getVal(float t) {
+		return splines[(int)(floor(t))].getVal(t);
+	}
+	
+	Vector getDer(float t) {
+		return splines[(int)(floor(t))].getDer(t);
+	}
+	 
 };
 
 struct UVDrawable : public ColoredDrawable {
