@@ -213,6 +213,8 @@ struct ColoredDrawable: public Drawable {
         //glMaterialf (GL_FRONT,GL_SHININESS, 50);
 	}
 	
+	virtual ~ ColoredDrawable() {}
+	
 };
 
 struct UVDrawable : public ColoredDrawable {
@@ -239,8 +241,8 @@ struct UVDrawable : public ColoredDrawable {
 	void drawItem (){
         glBegin(GL_QUADS);
 		
-		for (float u = uMin; u <uMax;u += du) {
-			for (float v = vMin; v < vMax+0; v+= dv) {
+		for (float u = uMin; u <uMax + EPSILON ;u += du) {
+			for (float v = vMin; v < vMax+EPSILON; v+= dv) {
 				putPoint(u,v);
 				putPoint(u+du,v);
 				putPoint(u+du,v+dv);
@@ -255,6 +257,90 @@ struct UVDrawable : public ColoredDrawable {
 	virtual ~UVDrawable(){}
 
 };
+
+struct Cone: public ColoredDrawable {
+	float r,h;
+	
+	Cone(Vector p, float h = 1, float r=1, Color c = Color(.9,.6,.2)):
+	ColoredDrawable(p,c), r(r), h(h) {}
+	
+	virtual void drawItem() {
+		float dt = 2 * M_PI / 30.0f;
+		
+		glBegin(GL_TRIANGLE_FAN);
+		
+		glNormal3f(0,1,0);
+		glVertex3f(0,h,0);
+		
+		for (float t = 0; t < 2.0*M_PI; t += dt) {
+			glNormal3f(cos(t),0,sin(t));
+			glVertex3f(r*cos(t), 0, r * sin(t));
+		}
+		
+		glEnd();
+		
+		glBegin(GL_TRIANGLE_FAN);
+		
+		glNormal3f(0,-1,0);
+		glVertex3f(0,0,0);
+		
+		for (float t = 0; t < 2.0*M_PI + EPSILON ; t += dt) {
+			glVertex3f(r*sin(t), 0, r * cos(t));
+		}
+		
+		glEnd();
+		
+	}
+	
+};
+
+struct Cylinder: public ColoredDrawable {
+	float r,h;
+	
+	Cylinder(Vector p, float h = 1, float r=1, Color c = Color(.9,.6,.2)):
+	ColoredDrawable(p,c), r(r), h(h) {}
+	
+	virtual void drawItem() {
+		float dt = 2 * M_PI / 30.0f;
+		
+		glBegin(GL_TRIANGLE_STRIP);
+		
+		
+		for (float t = 0; t < 2.0*M_PI; t += dt) {
+			glNormal3f(sin(t),0,cos(t));
+			glVertex3f(r*sin(t), 0, r * cos(t));
+			glVertex3f(r*sin(t), h, r * cos(t));
+		}
+		
+		glEnd();
+		
+		glBegin(GL_TRIANGLE_FAN);
+		
+		glNormal3f(0,1,0);
+		glVertex3f(0,h,0);
+		
+		for (float t = 0; t < 2.0*M_PI + EPSILON ; t += dt) {
+			glVertex3f(r*cos(t), h, r * sin(t));
+		}
+		
+		glEnd();
+		
+		glBegin(GL_TRIANGLE_FAN);
+		
+		glNormal3f(0,-1,0);
+		glVertex3f(0,0,0);
+		
+		for (float t = 0; t < 2.0*M_PI + EPSILON ; t += dt) {
+			glVertex3f(r*sin(t), 0, r * cos(t));
+		}
+		
+		glEnd();
+		
+		
+	}
+	
+};
+
 
 struct Sphere: public UVDrawable {
 	float r;
@@ -383,6 +469,10 @@ void onDisplay( ) {
 
 	Sphere a (Vector(0,1,0),1);
 	a.draw();
+	Cone b (Vector(2,3,0), 1, 1);
+	b.draw();
+	Cylinder c (Vector(-2,5,0), 1, 1);
+	c.draw();
 
 	float shadow_mtx[4][4] = {1,                         0,       0,                       0,
 		                      -lightdir[0]/lightdir[1],  0,     -lightdir[2]/lightdir[1],  0,
