@@ -141,22 +141,13 @@ void glVertex3f(const Vector& v) {
   glVertex3f(v.x, v.y, v.z);
 }
 
+void glNormal3f(const Vector& v) {
+  glNormal3f(v.x, v.y, v.z);
+}
+
 void glMaterialfv(GLenum face, GLenum p, Color c) {
 	float arr[4] = {c.r,c.g,c.b,1};
 	glMaterialfv(face,p,arr);
-}
-
-void drawQuad(const Vector& a, const Vector& b, const Vector& c, const Vector& d) {
-  Vector normal = ((c-a) % (b-a)).norm();
-  glMaterialfv( GL_FRONT, GL_DIFFUSE,Color(fabs(normal.x),fabs(normal.y),fabs(normal.z)));
-  glNormal3f(normal.x, normal.y, normal.z);
-  glVertex3f(a); glVertex3f(b); glVertex3f(c); glVertex3f(d);
-}
-
-void drawQuad(const Vector& a, const Vector& b, const Vector& c, const Vector& d, const Vector& normal) {
-  //glMaterialfv( GL_FRONT, GL_DIFFUSE,Color(fabs(normal.x),fabs(normal.y),fabs(normal.z)));
-  glNormal3f(normal.x, normal.y, normal.z);
-  glVertex3f(a); glVertex3f(b); glVertex3f(c); glVertex3f(d);	
 }
 
 
@@ -213,15 +204,21 @@ struct UVDrawable : public Drawable {
         //glMaterialf (GL_FRONT,GL_SHININESS, 50);
 	}
 
+	void putPoint(float u, float v) {
+		glNormal3f(getNorm(u,v));
+		glVertex3f(getVal(u,v));		
+	}
+
 	void drawItem (){
 		
         glBegin(GL_QUADS);
 		
 		for (float u = uMin; u <uMax;u += du) {
 			for (float v = vMin; v < vMax+0; v+= dv) {
-				drawQuad(
-				getVal(u,v),getVal(u+du,v),getVal(u+du,v+dv),getVal(u,v+dv),
-				getNorm(u+du/2,v+dv/2));
+				putPoint(u,v);
+				putPoint(u+du,v);
+				putPoint(u+du,v+dv);
+				putPoint(u,v+dv);
 			}
 		}
 		
@@ -293,34 +290,6 @@ struct Camera {
 	}
 };
 
-void drawCube(const Vector& size) {
-	
-	glPushMatrix();
-	glTranslatef(4,.5,0);
-	
-  glBegin(GL_QUADS); {
-    /*       (E)-----(A)
-             /|      /|
-            / |     / |
-          (F)-----(B) |
-           | (H)---|-(D)
-           | /     | /
-           |/      |/
-          (G)-----(C)        */
-
-    Vector s = size / 2;
-
-    Vector A(+s.x, +s.y, -s.z), B(+s.x, +s.y, +s.z), C(+s.x, -s.y, +s.z), D(+s.x, -s.y, -s.z), 
-           E(-s.x, +s.y, -s.z), F(-s.x, +s.y, +s.z), G(-s.x, -s.y, +s.z), H(-s.x, -s.y, -s.z);
-
-    
-    drawQuad(A, D, C, B); drawQuad(E, F, G, H); drawQuad(A, B, F, E);
-    drawQuad(D, H, G, C); drawQuad(B, C, G, F); drawQuad(A, E, H, D);
-
-  } glEnd();
-  glPopMatrix();
-}
-
 ////////////////////////////////////////////////////////////////////////
 
 struct World {
@@ -388,7 +357,6 @@ void onDisplay( ) {
 	glEnd( );
 
 	
-	drawCube(Vector(1,1,1));
 
 	Sphere a (Vector(0,1,0),1);
 	a.draw();
@@ -404,8 +372,7 @@ void onDisplay( ) {
 	glColor3f(0, 0, 0);
 	
 	
-	
-	drawCube(Vector(1,1,1));
+
 	a.draw();
 
 	glutSwapBuffers();     				// Buffercsere: rajzolas vege
