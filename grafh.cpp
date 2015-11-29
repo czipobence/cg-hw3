@@ -216,7 +216,7 @@ struct ColoredDrawable: public Drawable {
 	
 };
 
-struct BezierCurve : ColoredDrawable {
+struct BezierCurve : public ColoredDrawable {
     Vector cps[10];
     int num;
 
@@ -254,27 +254,27 @@ struct BezierCurve : ColoredDrawable {
    
 	void drawItem() {
 	
-	glEnable(GL_COLOR_MATERIAL);
-	glColor3f(kd.r, kd.g, kd.b);
-	
-	glBegin(GL_LINE_STRIP);
-	
-	for (float t = 0; t < 1; t+= 0.01) {
-		glVertex3f(r(t));
-	}
-	
-	glEnd();
-	
-	glBegin(GL_LINE_STRIP);
-	
-	for (int i = 0; i<num;i++) {
-		glVertex3f(cps[i]);
-	}
-	
-	glEnd();
-	
-	
-	glDisable(GL_COLOR_MATERIAL);   
+		glEnable(GL_COLOR_MATERIAL);
+		glColor3f(kd.r, kd.g, kd.b);
+		
+		glBegin(GL_LINE_STRIP);
+		
+		for (float t = 0; t < 1; t+= 0.01) {
+			glVertex3f(r(t));
+		}
+		
+		glEnd();
+		
+		glBegin(GL_LINE_STRIP);
+		
+		for (int i = 0; i<num;i++) {
+			glVertex3f(cps[i]);
+		}
+		
+		glEnd();
+		
+		
+		glDisable(GL_COLOR_MATERIAL);   
 	}
    
    
@@ -316,12 +316,12 @@ struct Hermite {
 	
 };
 
-struct CatmullRom {
+struct CatmullRom : ColoredDrawable {
 	Hermite splines[10];
 	int n;
 	Vector lp, lv;
 	
-	CatmullRom(Vector sp, Vector sv): lp(sp), lv(sv) {n = 0;}
+	CatmullRom(Vector sp, Vector sv, Vector p, Color c=Color(0,1,0)): ColoredDrawable(p,c), lp(sp), lv(sv) {n = 0;}
 	
 	void addSpline(Vector p, Vector v) {
 		if (n < 10) {
@@ -337,7 +337,33 @@ struct CatmullRom {
 	}
 	
 	Vector getDer(float t) {
-		return splines[(int)(floor(t))].getDer(t);
+		return splines[(int)(floor(t))].getDerived(t);
+	}
+	
+	void drawItem() {
+	
+		glEnable(GL_COLOR_MATERIAL);
+		glColor3f(kd.r, kd.g, kd.b);
+		
+		glBegin(GL_LINE_STRIP);
+		
+		for (float t = 0; t < 1; t+= 0.01) {
+			glVertex3f(getVal(t));
+		}
+		
+		glEnd();
+		
+		glBegin(GL_LINE_STRIP);
+		
+		for (int i = 0; i<n;i++) {
+			glVertex3f(splines[i].p0);
+		}
+		glVertex3f(lp);
+		
+		glEnd();
+		
+		
+		glDisable(GL_COLOR_MATERIAL);   
 	}
 	 
 };
