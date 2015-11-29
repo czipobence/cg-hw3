@@ -150,6 +150,16 @@ void glMaterialfv(GLenum face, GLenum p, Color c) {
 	glMaterialfv(face,p,arr);
 }
 
+void glTranslatef(Vector v) {
+	glTranslatef(v.x,v.y,v.z);
+}
+void glRotatef(float angle, Vector v) {
+	glRotatef(angle,v.x,v.y,v.z);
+}
+void glScalef(Vector v) {
+	glScalef(v.x,v.y,v.z);
+}
+
 
 struct Drawable {
 	
@@ -183,13 +193,15 @@ struct Plain : public Drawable {
 };
 
 struct UVDrawable : public Drawable {
+	Vector p;
 	float uMin,uMax,du,vMin,vMax,dv;
 	Color c;
 	
-	UVDrawable(	float uMin=0, float uMax = 2*M_PI, int nu = 30,
+	UVDrawable(	Vector _p,
+				float uMin=0, float uMax = 2*M_PI, int nu = 30,
 				float vMin=0, float vMax = 1*M_PI, int nv = 30,
 				Color _c = Color(0,0,0)):
-				uMin(uMin),uMax(uMax),vMin(vMin),vMax(vMax), c(_c) {
+				p(_p),uMin(uMin),uMax(uMax),vMin(vMin),vMax(vMax), c(_c) {
 					du = (uMax - uMin) / (float)nu;
 					dv = (vMax - vMin) / (float)nv;
 				}
@@ -210,7 +222,8 @@ struct UVDrawable : public Drawable {
 	}
 
 	void drawItem (){
-		
+		glPushMatrix();
+		glTranslatef(p);
         glBegin(GL_QUADS);
 		
 		for (float u = uMin; u <uMax;u += du) {
@@ -223,7 +236,7 @@ struct UVDrawable : public Drawable {
 		}
 		
 		glEnd();
-		
+		glPopMatrix();
 		
 	}
 	
@@ -232,21 +245,20 @@ struct UVDrawable : public Drawable {
 };
 
 struct Sphere: public UVDrawable {
-	Vector p;
 	float r;
 	
 	Sphere(Vector center, float radius = 1, Color c = Color(.9,.9,.6)):
-	UVDrawable(0,2*M_PI,40,0,M_PI,20,c), p(center),r(radius) {} 
+	UVDrawable(center,0,2*M_PI,40,0,M_PI,20,c),r(radius) {} 
 	
 	Vector getVal(float u, float v) {
-		return p + Vector (
+		return Vector (
 			(float)(r * cos(u) * sin (v)),
 			(float)(r * sin(u) * sin (v)),
 			(float)(r * cos(v))
 		);
 	}
 	
-	Vector getNorm(float u, float v) {return (getVal(u,v) - p).norm();}
+	Vector getNorm(float u, float v) {return (getVal(u,v)).norm();}
 	
 };
 
