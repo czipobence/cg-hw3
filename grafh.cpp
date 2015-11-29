@@ -160,7 +160,6 @@ void glScalef(Vector v) {
 	glScalef(v.x,v.y,v.z);
 }
 
-
 struct Drawable {
 	
 	Vector p;
@@ -215,6 +214,55 @@ struct ColoredDrawable: public Drawable {
 	
 	virtual ~ ColoredDrawable() {}
 	
+};
+
+struct BezierCurve : ColoredDrawable {
+    Vector cps[10];
+    int num;
+
+	BezierCurve(Vector p, Color c=Color(0,1,0)): ColoredDrawable(p,c) {
+		num = 0;
+	}
+
+	float B(int i, float t) {
+		int n = num-1;
+		float choose = 1;
+      	for(int j = 1; j <= i; j++) choose *= (float)(n-j+1)/j;
+      	return choose * pow(t, i) * pow(1-t, n-i);
+	}
+	
+	void addPoint(Vector v) {
+		if (num < 10) {
+			cps[num] = v;
+			num++;
+		}
+	}
+
+	Vector r(float t) {
+		Vector rr(0,0,0);
+      	for(int i = 0; i < num; i++)
+			rr = rr + cps[i] * B(i,t);
+      	return rr;
+   }
+   
+	void drawItem() {
+	
+	glEnable(GL_COLOR_MATERIAL);
+	glColor3f(kd.r, kd.g, kd.b);
+	
+	glBegin(GL_LINE_STRIP);
+	
+	for (float t = 0; t < 1; t+= 0.01) {
+		glVertex3f(r(t));
+	}
+	
+	glEnd();
+	
+	glDisable(GL_COLOR_MATERIAL);   
+	}
+   
+   
+   
 };
 
 struct UVDrawable : public ColoredDrawable {
@@ -471,8 +519,19 @@ void onDisplay( ) {
 	a.draw();
 	Cone b (Vector(2,3,0), 1, 1);
 	b.draw();
-	Cylinder c (Vector(-2,5,0), 1, 1);
-	c.draw();
+	//Cylinder c (Vector(-2,5,0), 1, 1);
+	//c.draw();
+	
+	BezierCurve d (Vector(-2,0,0));
+	d.addPoint(Vector(0,0,0));
+	d.addPoint(Vector(0,0,1));
+	d.addPoint(Vector(0,1,6));
+	d.addPoint(Vector(0,2,1));
+	d.addPoint(Vector(0,6,0));
+	d.addPoint(Vector(0,2,-1));
+	d.addPoint(Vector(0,0,-1));
+	d.addPoint(Vector(0,0,0));
+	d.draw();
 
 	float shadow_mtx[4][4] = {1,                         0,       0,                       0,
 		                      -lightdir[0]/lightdir[1],  0,     -lightdir[2]/lightdir[1],  0,
