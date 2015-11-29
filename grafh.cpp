@@ -347,7 +347,7 @@ struct CatmullRom : ColoredDrawable {
 		
 		glBegin(GL_LINE_STRIP);
 		
-		for (float t = 0; t < 1; t+= 0.01) {
+		for (float t = 0; t < n; t+= 0.01) {
 			glVertex3f(getVal(t));
 		}
 		
@@ -625,7 +625,7 @@ void onDisplay( ) {
 	//Cylinder c (Vector(-2,5,0), 1, 1);
 	//c.draw();
 	
-	BezierCurve d (Vector(-2,0,0));
+	/*BezierCurve d (Vector(-2,0,0));
 	d.addPoint(Vector(0,0,0));
 	d.addPoint(Vector(0,0,1));
 	d.addPoint(Vector(0,1,6));
@@ -635,7 +635,14 @@ void onDisplay( ) {
 	d.addPoint(Vector(0,0,-1));
 	d.addPoint(Vector(0,0,0));
 	d.draw();
-
+	*/
+	
+	CatmullRom e (Vector (0,0,0), Vector(0,0,1), Vector(-2,0,0), Color(0,1,0));
+	e.addSpline(Vector(0,0,1), Vector(0,1,0));
+	e.addSpline(Vector(0,2,1), Vector(0,0,-1));
+	e.addSpline(Vector(0,2,-1), Vector(0,-1,0));
+	e.draw();
+	
 	float shadow_mtx[4][4] = {1,                         0,       0,                       0,
 		                      -lightdir[0]/lightdir[1],  0,     -lightdir[2]/lightdir[1],  0,
 							   0,                        0,      1,                        0,
