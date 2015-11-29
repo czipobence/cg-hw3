@@ -201,10 +201,10 @@ struct Plain : public Drawable {
 	}
 };
 
-struct SingleColorDrawable: public Drawable {
+struct ColoredDrawable: public Drawable {
 	Color kd;
 	
-	SingleColorDrawable(Vector p, Color c) : Drawable(p), kd(c) {}
+	ColoredDrawable(Vector p, Color c) : Drawable(p), kd(c) {}
 	
 	virtual void setProperties() {
 		glMaterialfv(GL_FRONT,GL_AMBIENT, kd*.3);
@@ -215,14 +215,14 @@ struct SingleColorDrawable: public Drawable {
 	
 };
 
-struct UVDrawable : public SingleColorDrawable {
+struct UVDrawable : public ColoredDrawable {
 	float uMin,uMax,du,vMin,vMax,dv;
 	
 	UVDrawable(	Vector _p,
 				float uMin=0, float uMax = 2*M_PI, int nu = 30,
 				float vMin=0, float vMax = 1*M_PI, int nv = 30,
 				Color _c = Color(0,0,0)):
-				SingleColorDrawable(_p,_c),uMin(uMin),uMax(uMax),vMin(vMin),vMax(vMax) {
+				ColoredDrawable(_p,_c),uMin(uMin),uMax(uMax),vMin(vMin),vMax(vMax) {
 					du = (uMax - uMin) / (float)nu;
 					dv = (vMax - vMin) / (float)nv;
 				}
