@@ -163,19 +163,28 @@ void glScalef(Vector v) {
 
 struct Drawable {
 	
+	Vector p;
+	
+	Drawable(Vector p): p(p) {}
+	
 	virtual void setProperties() {}
 	virtual void drawItem() = 0;
 	
 	void draw() {
+		glPushMatrix();
+		glTranslatef(p);
+		
 		setProperties();
 		drawItem();
+		
+		glPopMatrix();
 	}
 	virtual ~Drawable() {};
 };
 
 struct Plain : public Drawable {
-	Vector p, n;
-	Plain (const Vector& _p, const Vector & _n) : p(_p), n(_n) {}
+	Vector n;
+	Plain (const Vector& _p, const Vector & _n) : Drawable(_p), n(_n) {}
 	void drawItem() {
 		glBegin( GL_QUADS );
 		for( int x = -20; x < 20; x++ ) {
@@ -193,7 +202,6 @@ struct Plain : public Drawable {
 };
 
 struct UVDrawable : public Drawable {
-	Vector p;
 	float uMin,uMax,du,vMin,vMax,dv;
 	Color c;
 	
@@ -201,7 +209,7 @@ struct UVDrawable : public Drawable {
 				float uMin=0, float uMax = 2*M_PI, int nu = 30,
 				float vMin=0, float vMax = 1*M_PI, int nv = 30,
 				Color _c = Color(0,0,0)):
-				p(_p),uMin(uMin),uMax(uMax),vMin(vMin),vMax(vMax), c(_c) {
+				Drawable(_p),uMin(uMin),uMax(uMax),vMin(vMin),vMax(vMax), c(_c) {
 					du = (uMax - uMin) / (float)nu;
 					dv = (vMax - vMin) / (float)nv;
 				}
@@ -222,8 +230,6 @@ struct UVDrawable : public Drawable {
 	}
 
 	void drawItem (){
-		glPushMatrix();
-		glTranslatef(p);
         glBegin(GL_QUADS);
 		
 		for (float u = uMin; u <uMax;u += du) {
@@ -236,7 +242,6 @@ struct UVDrawable : public Drawable {
 		}
 		
 		glEnd();
-		glPopMatrix();
 		
 	}
 	
@@ -267,10 +272,9 @@ struct Csirguru: public Drawable {
 	static const float HEAD_POS_Y = 0.0f;
 	static const float HEAD_POS_Z = 0.0f;
 	static const float HEAD_RADIUS = 1.0f;
-	Vector p;
 	Sphere head;
 	
-	Csirguru (Vector middle): p(middle), 
+	Csirguru (Vector middle): Drawable(middle), 
 					head(p+Vector(HEAD_POS_X,HEAD_POS_Y,HEAD_POS_Z),HEAD_RADIUS) {}
 	
 	void draw() {
