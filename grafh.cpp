@@ -154,21 +154,28 @@ void drawQuad(const Vector& a, const Vector& b, const Vector& c, const Vector& d
 }
 
 void drawQuad(const Vector& a, const Vector& b, const Vector& c, const Vector& d, const Vector& normal) {
-  glMaterialfv( GL_FRONT, GL_DIFFUSE,Color(fabs(normal.x),fabs(normal.y),fabs(normal.z)));
+  //glMaterialfv( GL_FRONT, GL_DIFFUSE,Color(fabs(normal.x),fabs(normal.y),fabs(normal.z)));
   glNormal3f(normal.x, normal.y, normal.z);
   glVertex3f(a); glVertex3f(b); glVertex3f(c); glVertex3f(d);	
 }
 
 
 struct Drawable {
-	virtual void draw() = 0;
+	
+	virtual void setProperties() {}
+	virtual void drawItem() = 0;
+	
+	void draw() {
+		setProperties();
+		drawItem();
+	}
 	virtual ~Drawable() {};
 };
 
 struct Plain : public Drawable {
 	Vector p, n;
 	Plain (const Vector& _p, const Vector & _n) : p(_p), n(_n) {}
-	void draw() {
+	void drawItem() {
 		glBegin( GL_QUADS );
 		for( int x = -20; x < 20; x++ ) {
 			for( int z = -20; z < 20; z++ ) {
@@ -186,24 +193,35 @@ struct Plain : public Drawable {
 
 struct UVDrawable : public Drawable {
 	float uMin,uMax,du,vMin,vMax,dv;
+	Color c;
 	
 	UVDrawable(	float uMin=0, float uMax = 2*M_PI, int nu = 30,
-				float vMin=0, float vMax = 1*M_PI, int nv = 30):
-				uMin(uMin),uMax(uMax),vMin(vMin),vMax(vMax) {
+				float vMin=0, float vMax = 1*M_PI, int nv = 30,
+				Color _c = Color(0,0,0)):
+				uMin(uMin),uMax(uMax),vMin(vMin),vMax(vMax), c(_c) {
 					du = (uMax - uMin) / (float)nu;
 					dv = (vMax - vMin) / (float)nv;
 				}
 
 	virtual Vector getVal(float u, float v) = 0;
 	virtual Vector getNorm(float u, float v) = 0;
+	
+	virtual void setProperties() {
+		glMaterialfv(GL_FRONT,GL_AMBIENT, c*.3);
+        glMaterialfv(GL_FRONT,GL_DIFFUSE, c);
+        //glMaterialfv(GL_FRONT,GL_SPECULAR, ks);
+        //glMaterialf (GL_FRONT,GL_SHININESS, 50);
+	}
 
-	void draw (){
+	void drawItem (){
 		
         glBegin(GL_QUADS);
 		
 		for (float u = uMin; u <uMax;u += du) {
 			for (float v = vMin; v < vMax+0; v+= dv) {
-				drawQuad(getVal(u,v),getVal(u+du,v),getVal(u+du,v+dv),getVal(u,v+dv),getNorm(u+du/2,v+dv/2));
+				drawQuad(
+				getVal(u,v),getVal(u+du,v),getVal(u+du,v+dv),getVal(u,v+dv),
+				getNorm(u+du/2,v+dv/2));
 			}
 		}
 		
@@ -220,7 +238,8 @@ struct Sphere: public UVDrawable {
 	Vector p;
 	float r;
 	
-	Sphere(Vector center, float radius = 1): p(center),r(radius) {} 
+	Sphere(Vector center, float radius = 1, Color c = Color(.9,.9,.6)):
+	UVDrawable(0,2*M_PI,40,0,M_PI,20,c), p(center),r(radius) {} 
 	
 	Vector getVal(float u, float v) {
 		return p + Vector (
@@ -323,9 +342,11 @@ void onInitialization( ) {
 	glEnable(GL_LIGHT0);
 
 	
-	/*glFrontFace(GL_CW);
+	glShadeModel(GL_SMOOTH);
+	
+	glFrontFace(GL_CW);
 	glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);*/
+	glEnable(GL_CULL_FACE);
 
 }
 
