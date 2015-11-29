@@ -129,6 +129,7 @@ struct Color {
 
 const Color WHITE(1,1,1);
 const Color GRAY(.2,.2,.2);
+const Color BLACK(0,0,0);
 
 const int SCREEN_WIDTH = 600;	// alkalmazás ablak felbontása
 const int SCREEN_HEIGHT = 600;
@@ -186,8 +187,8 @@ struct Plain : public Drawable {
 struct UVDrawable : public Drawable {
 	float uMin,uMax,du,vMin,vMax,dv;
 	
-	UVDrawable(	float uMin=0, float uMax = 1*M_PI, int nu = 30,
-				float vMin=0, float vMax = 2*M_PI, int nv = 30):
+	UVDrawable(	float uMin=0, float uMax = 2*M_PI, int nu = 30,
+				float vMin=0, float vMax = 1*M_PI, int nv = 30):
 				uMin(uMin),uMax(uMax),vMin(vMin),vMax(vMax) {
 					du = (uMax - uMin) / (float)nu;
 					dv = (vMax - vMin) / (float)nv;
@@ -201,8 +202,8 @@ struct UVDrawable : public Drawable {
         glBegin(GL_QUADS);
 		
 		for (float u = uMin; u <uMax;u += du) {
-			for (float v = vMin; v < vMax; v+= dv) {
-				drawQuad(getVal(u,v),getVal(u+du,v),getVal(u+du,v+dv),getVal(u,v+dv),getNorm(u,v));
+			for (float v = vMin; v < vMax+0; v+= dv) {
+				drawQuad(getVal(u,v),getVal(u+du,v),getVal(u+du,v+dv),getVal(u,v+dv),getNorm(u+du/2,v+dv/2));
 			}
 		}
 		
@@ -222,7 +223,7 @@ struct Sphere: public UVDrawable {
 	Sphere(Vector center, float radius = 1): p(center),r(radius) {} 
 	
 	Vector getVal(float u, float v) {
-		return Vector (
+		return p + Vector (
 			(float)(r * cos(u) * sin (v)),
 			(float)(r * sin(u) * sin (v)),
 			(float)(r * cos(v))
@@ -252,15 +253,21 @@ struct Csirguru: public Drawable {
 ////////////////////////////////////////////////////////////////////////
 
 struct Camera {
-	Vector pos,dir,up, eye;
+	Vector pos,dir,up, eye,right;
 	
 	
-	Camera(	Vector pos=Vector(-3,2,-2), 
-			Vector dir=Vector(3,-2,2), 
+	Camera(	Vector pos=Vector(-0,1,-4), 
+			Vector dir=Vector(0,0,4), 
 			Vector up=Vector(0,1,0)):
 			pos(pos), dir(dir), up(up) {
-				eye = pos + dir;
+				fit();
 			} 
+			
+	void fit() {
+		eye = pos + dir;		
+		this -> right = (dir % up).norm();
+		this -> up = (this-> right % this->dir).norm();
+	}
 	
 	void set() {
 		gluLookAt(pos.x,pos.y,pos.z,eye.x,eye.y,eye.z,up.x,up.y,up.z);
@@ -308,41 +315,38 @@ void onInitialization( ) {
 	
 	glEnable(GL_DEPTH_TEST);
 	
-	glEnable(GL_LIGHT0);
 	float Ia[4] = {0.1, 0.1, 0.1, 1}, Id[4] = {1.0, 1.0, 1.0, 1}, Is[4] = {2, 2, 2, 1};
 	
 	glLightfv(GL_LIGHT0, GL_AMBIENT, Ia);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, Id);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, Is);
+	glEnable(GL_LIGHT0);
+
 	
-	glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 1.0f);
-	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.0f);
-	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.0f);
-	
-	glFrontFace(GL_CW);
+	/*glFrontFace(GL_CW);
 	glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);*/
 
 }
 
+float lightdir[4] = {1,1,1,0};
+
 // Rajzolas, ha az alkalmazas ablak ervenytelenne valik, akkor ez a fuggveny hivodik meg
 void onDisplay( ) {
-	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(60, (float)SCREEN_WIDTH/(float)SCREEN_HEIGHT, 0.1, 100);
+	gluPerspective(80, (float)SCREEN_WIDTH/(float)SCREEN_HEIGHT, 0.1, 100);
 	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	world.cam.set();
-	//gluLookAt(-3, 2, -2, 0, 0, 0, 0, 1, 0);
 	
-	float p[4] = {-1, 1, -1, 0};
-	glLightfv(GL_LIGHT0, GL_POSITION, p);
-
+	glLightfv(GL_LIGHT0, GL_POSITION, lightdir);
 	
+	glMaterialfv( GL_FRONT, GL_AMBIENT, GRAY);
+	//glMaterialfv( GL_FRONT, GL_SPECULAR, BLACK);	
 	
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);		// torlesi szin beallitasa
+	glClearColor(0.1f, 0.2f, 0.3f, 1.0f);		// torlesi szin beallitasa
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // kepernyo torles
 
 	glEnable(GL_LIGHTING);
@@ -353,6 +357,7 @@ void onDisplay( ) {
 	for( int x = -10; x < 10; x++ ) {
 		for( int z = -10; z < 10; z++ ) {
 			glMaterialfv( GL_FRONT, GL_DIFFUSE, (x ^ z) & 1 ? WHITE : GRAY);
+			glNormal3f(0,1,0);
 			glVertex3f(x * 1,     0, z * 1);
 			glVertex3f((x+1) * 1, 0, z * 1);
 			glVertex3f((x+1) * 1, 0, (z+1) * 1);
@@ -364,9 +369,8 @@ void onDisplay( ) {
 	
 	drawCube(Vector(1,1,1));
 
-	
-
-	float lightdir[3] = {1,1,1};
+	Sphere a (Vector(0,1,0),1);
+	a.draw();
 
 	float shadow_mtx[4][4] = {1,                         0,       0,                       0,
 		                      -lightdir[0]/lightdir[1],  0,     -lightdir[2]/lightdir[1],  0,
@@ -381,10 +385,12 @@ void onDisplay( ) {
 	
 	
 	drawCube(Vector(1,1,1));
+	a.draw();
 
 	glutSwapBuffers();     				// Buffercsere: rajzolas vege
 
 }
+
 
 // Billentyuzet esemenyeket lekezelo fuggveny (lenyomas)
 void onKeyboard(unsigned char key, int x, int y) {
@@ -394,50 +400,51 @@ void onKeyboard(unsigned char key, int x, int y) {
     if (key == 'y') glutPostRedisplay( ); //MOVE DOWN
     if (key == ' ') glutPostRedisplay( ); //THROW BOMB
     
-   /*float UNIT = .5;
+   float UNIT = .5;
 	if (key == 'a') {
-		camPos = camPos - world.cam.right * UNIT;
+		world.cam.pos = world.cam.pos - world.cam.right * UNIT;
 		glutPostRedisplay( );
 	}
 	if (key == 'd') {
-		camPos = camPos + world.cam.right * UNIT;
+		world.cam.pos = world.cam.pos + world.cam.right * UNIT;
 		glutPostRedisplay( );
 	}
 	if (key == 'w') {
-		camPos = camPos + world.cam.dir * UNIT;
+		world.cam.pos = world.cam.pos + world.cam.dir * UNIT;
 		glutPostRedisplay( );
 	}
 	if (key == 's') {
-		camPos = camPos - world.cam.dir * UNIT;
+		world.cam.pos = world.cam.pos - world.cam.dir * UNIT;
 		glutPostRedisplay( );
 	}
 	if (key == 'r') {
-		camPos = camPos + world.cam.up * UNIT;
+		world.cam.pos = world.cam.pos + world.cam.up * UNIT;
 		glutPostRedisplay( );
 	}
 	if (key == 'f') {
-		camPos = camPos - world.cam.up * UNIT;
+		world.cam.pos = world.cam.pos - world.cam.up * UNIT;
 		glutPostRedisplay( );
 	}
 	if (key == '6') {
-		camFwd = (camFwd % camUp + camFwd * 3) / 4; 
+		world.cam.dir = (world.cam.dir % world.cam.up + world.cam.dir * 3) / 4; 
 		glutPostRedisplay( );
 	}
 	if (key == '4') {
-		camFwd = (camUp % camFwd + camFwd * 3) / 4; 
+		world.cam.dir = (world.cam.up % world.cam.dir + world.cam.dir * 3) / 4; 
 		glutPostRedisplay( );
 	}
 	if (key == '8') {
-		camFwd = (world.cam.right % world.cam.dir + world.cam.dir*3) / 4; 
-		camUp = world.cam.right % world.cam.dir;
+		world.cam.dir = (world.cam.right % world.cam.dir + world.cam.dir*3) / 4; 
+		world.cam.up = world.cam.right % world.cam.dir;
 		glutPostRedisplay( );
 	}
 	if (key == '2') {
-		camFwd = (world.cam.dir % world.cam.right + world.cam.dir*3) / 4; 
-		camUp = world.cam.right % world.cam.dir;
+		world.cam.dir = (world.cam.dir % world.cam.right + world.cam.dir*3) / 4; 
+		world.cam.up = world.cam.right % world.cam.dir;
 		glutPostRedisplay( );
 	}
-	*/
+	
+	world.cam.fit();
 }
 
 // Billentyuzet esemenyeket lekezelo fuggveny (felengedes)
