@@ -201,15 +201,28 @@ struct Plain : public Drawable {
 	}
 };
 
-struct UVDrawable : public Drawable {
+struct SingleColorDrawable: public Drawable {
+	Color kd;
+	
+	SingleColorDrawable(Vector p, Color c) : Drawable(p), kd(c) {}
+	
+	virtual void setProperties() {
+		glMaterialfv(GL_FRONT,GL_AMBIENT, kd*.3);
+        glMaterialfv(GL_FRONT,GL_DIFFUSE, kd);
+        //glMaterialfv(GL_FRONT,GL_SPECULAR, ks);
+        //glMaterialf (GL_FRONT,GL_SHININESS, 50);
+	}
+	
+};
+
+struct UVDrawable : public SingleColorDrawable {
 	float uMin,uMax,du,vMin,vMax,dv;
-	Color c;
 	
 	UVDrawable(	Vector _p,
 				float uMin=0, float uMax = 2*M_PI, int nu = 30,
 				float vMin=0, float vMax = 1*M_PI, int nv = 30,
 				Color _c = Color(0,0,0)):
-				Drawable(_p),uMin(uMin),uMax(uMax),vMin(vMin),vMax(vMax), c(_c) {
+				SingleColorDrawable(_p,_c),uMin(uMin),uMax(uMax),vMin(vMin),vMax(vMax) {
 					du = (uMax - uMin) / (float)nu;
 					dv = (vMax - vMin) / (float)nv;
 				}
@@ -217,12 +230,6 @@ struct UVDrawable : public Drawable {
 	virtual Vector getVal(float u, float v) = 0;
 	virtual Vector getNorm(float u, float v) = 0;
 	
-	virtual void setProperties() {
-		glMaterialfv(GL_FRONT,GL_AMBIENT, c*.3);
-        glMaterialfv(GL_FRONT,GL_DIFFUSE, c);
-        //glMaterialfv(GL_FRONT,GL_SPECULAR, ks);
-        //glMaterialf (GL_FRONT,GL_SHININESS, 50);
-	}
 
 	void putPoint(float u, float v) {
 		glNormal3f(getNorm(u,v));
