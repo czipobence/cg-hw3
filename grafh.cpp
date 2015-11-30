@@ -166,7 +166,7 @@ struct Drawable {
 	
 	Drawable(Vector p): p(p) {}
 	
-	virtual void setProperties() {}
+	virtual void setProperties() {return;}
 	virtual void drawItem() = 0;
 	
 	void draw() {
@@ -175,7 +175,6 @@ struct Drawable {
 		
 		setProperties();
 		drawItem();
-		
 		glPopMatrix();
 	}
 	virtual ~Drawable() {};
@@ -205,7 +204,7 @@ struct ColoredDrawable: public Drawable {
 	
 	ColoredDrawable(Vector p, Color c) : Drawable(p), kd(c) {}
 	
-	virtual void setProperties() {
+	void setProperties() {
 		glMaterialfv(GL_FRONT,GL_AMBIENT, kd*.3);
         glMaterialfv(GL_FRONT,GL_DIFFUSE, kd);
         //glMaterialfv(GL_FRONT,GL_SPECULAR, ks);
@@ -243,7 +242,7 @@ struct BezierCurve : public ColoredDrawable {
 		}
 	}
 
-	Vector r(float t) {
+	Vector getVal(float t) {
 		Vector rr(0,0,0);
 		for(int i = 0; i < num; i++)
 			rr = rr + cps[i] * B(num-1,i,t);
@@ -251,7 +250,7 @@ struct BezierCurve : public ColoredDrawable {
 	}
    
 	//http://www.cs.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/Bezier/bezier-der.html
-	Vector der(float t) {
+	Vector getDer(float t) {
 		Vector rr(0,0,0);
 		for(int i = 0; i < num-1; i++)
 			rr = rr + (cps[i+1] - cps[i]) * B(num-2,i,t);
@@ -266,7 +265,7 @@ struct BezierCurve : public ColoredDrawable {
 		glBegin(GL_LINE_STRIP);
 		
 		for (float t = 0; t < 1; t+= 0.01) {
-			glVertex3f(r(t));
+			glVertex3f(getVal(t));
 		}
 		
 		glEnd();
@@ -326,7 +325,9 @@ struct CatmullRom : ColoredDrawable {
 	Hermite splines[10];
 	int n;
 	
-	CatmullRom(Vector*pts = NULL, int len=0, Vector p=Vector(0,0,0), Color c=Color(0,1,0)):
+	CatmullRom(): ColoredDrawable(Vector(0,0,0), Color(0,0,0)), n(0) {}
+	
+	CatmullRom(Vector*pts, int len=0, Vector p=Vector(0,0,0), Color c=Color(0,1,0)):
 	 ColoredDrawable(p,c), n(len-1) {
 		for (int i = 0; i < n; i++) {
 			splines[i].p0 = pts[i];
@@ -384,10 +385,9 @@ struct CatmullRom : ColoredDrawable {
 struct UVDrawable : public ColoredDrawable {
 	float uMin,uMax,du,vMin,vMax,dv;
 	
-	UVDrawable(	Vector _p,
+	UVDrawable(	Vector _p, Color _c = Color(0,0,0),
 				float uMin=0, float uMax = 2*M_PI, int nu = 30,
-				float vMin=0, float vMax = 1*M_PI, int nv = 30,
-				Color _c = Color(0,0,0)):
+				float vMin=0, float vMax = 1*M_PI, int nv = 30):
 				ColoredDrawable(_p,_c),uMin(uMin),uMax(uMax),vMin(vMin),vMax(vMax) {
 					du = (uMax - uMin) / (float)nu;
 					dv = (vMax - vMin) / (float)nv;
@@ -415,20 +415,19 @@ struct UVDrawable : public ColoredDrawable {
 		}
 		
 		glEnd();
-		
 	}
 	
 	virtual ~UVDrawable(){}
 
 };
 
-struct CsirguruBody: public ColoredDrawable{
+struct CsirguruBody1: public ColoredDrawable{
 	static const int cm_siz = 4;
 	CatmullRom cms[cm_siz];
 	static const int bz_siz = 6;
 	BezierCurve bzs[bz_siz];
 	
-	CsirguruBody(Vector p, Color c = Color(1,0,0)) : ColoredDrawable(p,c){
+	CsirguruBody1(Vector p, Color c = Color(1,0,0)) : ColoredDrawable(p,c){
 		/*bzs[0].addPoint(Vector(-2.5,1,0));
 		bzs[0].addPoint(Vector(-2.5,1,0));
 		bzs[0].addPoint(Vector(-2.5,1,0));
@@ -491,12 +490,120 @@ struct CsirguruBody: public ColoredDrawable{
 		for (float i = 0; i<1.0f; i += 0.1f) {
 			Vector list[bz_siz];
 			for (int j = 0; j<bz_siz; j++) {
-				list[j] = bzs[j].r(i);
+				list[j] = bzs[j].getVal(i);
 			}
 			CatmullRom(list,bz_siz).draw();
 		}
 		
 	}
+	
+	
+};
+
+struct CsirguruBody: public UVDrawable{
+	static const int cm_siz = 4;
+	CatmullRom cms[cm_siz];
+	static const int bz_siz = 6;
+	BezierCurve bzs[bz_siz];
+	
+	CsirguruBody(Vector p, Color c = Color(1,0,0)) : 
+		UVDrawable(p,c, 0, 1, 30, 0, bz_siz-2,30){
+		/*bzs[0].addPoint(Vector(-2.5,1,0));
+		bzs[0].addPoint(Vector(-2.5,1,0));
+		bzs[0].addPoint(Vector(-2.5,1,0));
+		bzs[0].addPoint(Vector(-2.5,1,0));
+		bzs[0].addPoint(Vector(-2.5,1,0));
+		
+		bzs[1].addPoint(Vector(-2.2,.1,0));
+		bzs[1].addPoint(Vector(-2.2,.1,0.7));
+		bzs[1].addPoint(Vector(-1.8,0.85,0));
+		bzs[1].addPoint(Vector(-2.2,.1,-0.7));
+		bzs[1].addPoint(Vector(-2.2,.1,0));
+		
+		bzs[2].addPoint(Vector(-0.75,-1.1,0));
+		bzs[2].addPoint(Vector(-0.75,-1.1,2.1));
+		bzs[2].addPoint(Vector(-1.1,0.85,0));
+		bzs[2].addPoint(Vector(-0.75,-1.1,-2.1));
+		bzs[2].addPoint(Vector(-0.75,-1.1,0));
+		
+		bzs[3].addPoint(Vector(1.2,-0.55,0));*/
+		
+		
+	
+		
+		
+		Vector list1[6] = {Vector(-2.5,1,0), Vector(-2.2,.1,0), Vector(-0.75,-1.1,0), 
+			Vector(1.2,-0.55,0), Vector(1.9,0.85,0), Vector(2.2,1.6,0)};
+		cms[0] = CatmullRom(list1, 6, Vector(0,0,0), Color(0,0,1)); 
+		
+		Vector list2[6] = {Vector(-2.5,1,0), Vector(-2.2,.1,0.7), Vector(-0.75,-1.1,2.1), 
+			Vector(1.2,-0.55,2.8), Vector(1.9,0.85,1.4), Vector(2.2,1.6,0.6)};
+		cms[1] = CatmullRom(list2, 6, Vector(0,0,0), Color(0,0,1)); 
+		
+		Vector list3[6] = {Vector(-2.5,1,0), Vector(-1.8,0.85,0), Vector(-1.1,0.85,0), 
+			Vector(0.25,1.65,0), Vector(1,1.85,0), Vector(1.6,2,0)};
+		cms[2] = CatmullRom(list3, 6, Vector(0,0,0), Color(0,0,1)); 
+		
+		Vector list4[6] = {Vector(-2.5,1,0), Vector(-2.2,.1,-0.7), Vector(-0.75,-1.1,-2.1), 
+			Vector(1.2,-0.55,-2.8), Vector(1.9,0.85,-1.4), Vector(2.2,1.6,-0.6)};
+		cms[3] = CatmullRom(list4, 6, Vector(0,0,0), Color(0,0,1)); 
+		
+		for (int i = 0; i< bz_siz; i++) {
+			bzs[i].addPoint(list1[i]);
+			bzs[i].addPoint(list2[i]);
+			bzs[i].addPoint(list3[i]);
+			bzs[i].addPoint(list4[i]);
+			bzs[i].addPoint(list1[i]);
+		}
+		
+	}
+	
+	Vector getVal(float u, float v) {
+		Vector list[bz_siz];
+		for (int j = 0; j<bz_siz; j++) {
+			list[j] = bzs[j].getVal(u);
+		}
+		return CatmullRom(list,bz_siz).getVal(v);
+		return Vector(0,0,0);
+	}
+	
+	Vector getNorm(float u, float v) {
+		Vector list[bz_siz];
+		for (int j = 0; j<bz_siz; j++) {
+			list[j] = bzs[j].getVal(u);
+		}
+		Vector tan1 = CatmullRom(list,bz_siz).getDer(v);
+		
+		
+		for (int j = 0; j<bz_siz; j++) {
+			list[j] = bzs[j].getDer(u);
+		}
+		Vector tan2 = CatmullRom(list,bz_siz).getVal(v);
+		return tan1%tan2;
+		return Vector(0,0,0);
+	}
+	
+	
+	
+	
+	/*void drawItem() {
+		//for (int i = 0; i< cm_siz; i++) cms[i].draw();
+		
+		
+		
+		for (int i = 0; i< bz_siz; i++) {
+			bzs[i].draw();
+		}
+		
+		for (float i = 0; i<1.0f; i += 0.1f) {
+			Vector list[bz_siz];
+			for (int j = 0; j<bz_siz; j++) {
+				list[j] = bzs[j].getVal(i);
+			}
+			CatmullRom(list,bz_siz).draw();
+		}
+		
+	}*/
 	
 	
 };
@@ -589,7 +696,7 @@ struct Sphere: public UVDrawable {
 	float r;
 	
 	Sphere(Vector center, float radius = 1, Color c = Color(.9,.9,.6)):
-	UVDrawable(center,0,2*M_PI,40,0,M_PI,20,c),r(radius) {} 
+	UVDrawable(center,c,0,2*M_PI,40,0,M_PI,20),r(radius) {} 
 	
 	Vector getVal(float u, float v) {
 		return Vector (
