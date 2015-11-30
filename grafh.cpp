@@ -319,18 +319,25 @@ struct Hermite {
 struct CatmullRom : ColoredDrawable {
 	Hermite splines[10];
 	int n;
-	Vector lp, lv;
 	
-	CatmullRom(Vector sp, Vector sv, Vector p, Color c=Color(0,1,0)): ColoredDrawable(p,c), lp(sp), lv(sv) {n = 0;}
-	
-	void addSpline(Vector p, Vector v) {
-		if (n < 10) {
-			splines[n] = Hermite(lp,p,lv,v,n,n+1);
-			lp = p;
-			lv = v;
-			n++;
+	CatmullRom(Vector*pts = NULL, int len=0, Vector p=Vector(0,0,0), Color c=Color(0,1,0)):
+	 ColoredDrawable(p,c), n(len-1) {
+		for (int i = 0; i < n; i++) {
+			splines[i].p0 = pts[i];
+			splines[i].p1 = pts[i+1];
+			splines[i].t0 = (float)i;
+			splines[i].t1 = i + 1.0f;
+		}
+		splines[0].v0 = Vector(0,0,0);
+		splines[n-1].v1 = Vector(0,0,0);
+		for (int i = 0; i < n-1 ; i++) {
+			splines[i].v1 = (pts[i+2] - pts[i]) * 0.5f;
+		}
+		for (int i = 1; i < n ; i++) {
+			splines[i].v0 = splines[i-1].v1;
 		}
 	}
+	
 	
 	Vector getVal(float t) {
 		return splines[(int)(floor(t))].getVal(t);
@@ -358,7 +365,7 @@ struct CatmullRom : ColoredDrawable {
 		for (int i = 0; i<n;i++) {
 			glVertex3f(splines[i].p0);
 		}
-		glVertex3f(lp);
+		glVertex3f(splines[n-1].p1);
 		
 		glEnd();
 		
@@ -392,8 +399,8 @@ struct UVDrawable : public ColoredDrawable {
 	void drawItem (){
         glBegin(GL_QUADS);
 		
-		for (float u = uMin; u <uMax + EPSILON ;u += du) {
-			for (float v = vMin; v < vMax+EPSILON; v+= dv) {
+		for (float u = uMin; u < (uMax-du) + EPSILON ;u += du) {
+			for (float v = vMin; v < (vMax-du)+EPSILON; v+= dv) {
 				putPoint(u,v);
 				putPoint(u+du,v);
 				putPoint(u+du,v+dv);
@@ -407,6 +414,21 @@ struct UVDrawable : public ColoredDrawable {
 	
 	virtual ~UVDrawable(){}
 
+};
+
+struct CsirguruBody: public ColoredDrawable{
+	static const int cm_siz = 1;
+	CatmullRom cms[cm_siz];
+	
+	CsirguruBody(Vector p, Color c = Color(1,0,0)) : ColoredDrawable(p,c){
+		
+	}
+	
+	void drawItem() {
+		for (int i = 0; i< cm_siz; i++) cms[i].draw();
+	}
+	
+	
 };
 
 struct Cone: public ColoredDrawable {
@@ -637,11 +659,12 @@ void onDisplay( ) {
 	d.draw();
 	*/
 	
-	CatmullRom e (Vector (0,0,0), Vector(0,0,1), Vector(-2,0,0), Color(0,1,0));
-	e.addSpline(Vector(0,0,1), Vector(0,1,0));
-	e.addSpline(Vector(0,2,1), Vector(0,0,-1));
-	e.addSpline(Vector(0,2,-1), Vector(0,-1,0));
+	Vector pts[5] = {Vector(0,0,0), Vector(0,0,1), Vector(0,2,1), Vector(0,2,-1), Vector(0,0,-1)};
+	CatmullRom e (pts, 5, Vector(-2,0,0), Color(0,1,0));
 	e.draw();
+	
+	/*CsirguruBody f(Vector(-2,0,0), Color(1,0,0));
+	f.draw();*/
 	
 	float shadow_mtx[4][4] = {1,                         0,       0,                       0,
 		                      -lightdir[0]/lightdir[1],  0,     -lightdir[2]/lightdir[1],  0,
