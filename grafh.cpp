@@ -98,6 +98,10 @@ struct Vector {
 	return (*this - v).Length() < EPSILON;
    }
   
+  bool isZero() {
+	return (x*x < EPSILON) & (y*y < EPSILON) & (z*z < EPSILON);
+  }
+  
    float Length() const { return sqrt(x * x + y * y + z * z); }
    float Dist(Vector v) const { return (*this - v).Length(); }
    Vector norm() const {return *this * (1 / this->Length()); }
@@ -162,16 +166,27 @@ void glScalef(Vector v) {
 
 struct Drawable {
 	
-	Vector p;
+	Vector p ,sc, rot;
 	
-	Drawable(Vector p): p(p) {}
+	Drawable(const Vector& p, const Vector& sc = Vector(0,0,0), const Vector& rot = Vector(0,0,0)): 
+	p(p), sc(sc), rot(rot) {}
 	
 	virtual void setProperties() {return;}
 	virtual void drawItem() = 0;
 	
+	void setScale(const Vector& v) {sc = v;}
+	
+	void setTranslate(const Vector& v) {p = v;}
+	
+	void setRotate(const Vector& v) {rot = v;}
+	
 	void draw() {
 		glPushMatrix();
-		glTranslatef(p);
+		if (!p.isZero())					glTranslatef(p);
+		if (!sc.isZero())					glScalef(sc);
+		if (!(fabs(rot.x) < EPSILON))		glRotatef(rot.x,1,0,0);
+		if (!(fabs(rot.y) < EPSILON))		glRotatef(rot.y,0,1,0);
+		if (!(fabs(rot.z) < EPSILON))		glRotatef(rot.z,0,0,1);
 		
 		setProperties();
 		drawItem();
