@@ -220,9 +220,15 @@ struct BezierCurve : public ColoredDrawable {
     Vector cps[10];
     int num;
 
-	BezierCurve(Vector p, Color c=Color(0,1,0)): ColoredDrawable(p,c) {
+	BezierCurve(Vector p = Vector(0,0,0), Color c=Color(0,1,0)): ColoredDrawable(p,c) {
 		num = 0;
 	}
+
+	BezierCurve(Vector * points, int n,Vector p=Vector(0,0,0), Color c=Color(0,1,0)): ColoredDrawable(p,c) {
+		num = n;
+		for (int i = 0; i <n; i++) cps[i] = points[i];
+	}
+
 
 	float B(int n, int i, float t) {
 		float choose = 1;
@@ -265,13 +271,13 @@ struct BezierCurve : public ColoredDrawable {
 		
 		glEnd();
 		
-		glBegin(GL_LINE_STRIP);
+		/*glBegin(GL_LINE_STRIP);
 		
 		for (int i = 0; i<num;i++) {
 			glVertex3f(cps[i]);
 		}
 		
-		glEnd();
+		glEnd();*/
 		
 		
 		glDisable(GL_COLOR_MATERIAL);   
@@ -360,7 +366,7 @@ struct CatmullRom : ColoredDrawable {
 		
 		glEnd();
 		
-		glBegin(GL_LINE_STRIP);
+		/*glBegin(GL_LINE_STRIP);
 		
 		for (int i = 0; i<n;i++) {
 			glVertex3f(splines[i].p0);
@@ -368,7 +374,7 @@ struct CatmullRom : ColoredDrawable {
 		glVertex3f(splines[n-1].p1);
 		
 		glEnd();
-		
+		*/
 		
 		glDisable(GL_COLOR_MATERIAL);   
 	}
@@ -417,15 +423,79 @@ struct UVDrawable : public ColoredDrawable {
 };
 
 struct CsirguruBody: public ColoredDrawable{
-	static const int cm_siz = 1;
+	static const int cm_siz = 4;
 	CatmullRom cms[cm_siz];
+	static const int bz_siz = 6;
+	BezierCurve bzs[bz_siz];
 	
 	CsirguruBody(Vector p, Color c = Color(1,0,0)) : ColoredDrawable(p,c){
+		/*bzs[0].addPoint(Vector(-2.5,1,0));
+		bzs[0].addPoint(Vector(-2.5,1,0));
+		bzs[0].addPoint(Vector(-2.5,1,0));
+		bzs[0].addPoint(Vector(-2.5,1,0));
+		bzs[0].addPoint(Vector(-2.5,1,0));
+		
+		bzs[1].addPoint(Vector(-2.2,.1,0));
+		bzs[1].addPoint(Vector(-2.2,.1,0.7));
+		bzs[1].addPoint(Vector(-1.8,0.85,0));
+		bzs[1].addPoint(Vector(-2.2,.1,-0.7));
+		bzs[1].addPoint(Vector(-2.2,.1,0));
+		
+		bzs[2].addPoint(Vector(-0.75,-1.1,0));
+		bzs[2].addPoint(Vector(-0.75,-1.1,2.1));
+		bzs[2].addPoint(Vector(-1.1,0.85,0));
+		bzs[2].addPoint(Vector(-0.75,-1.1,-2.1));
+		bzs[2].addPoint(Vector(-0.75,-1.1,0));
+		
+		bzs[3].addPoint(Vector(1.2,-0.55,0));*/
+		
+		
+		
+		
+		
+		Vector list1[6] = {Vector(-2.5,1,0), Vector(-2.2,.1,0), Vector(-0.75,-1.1,0), 
+			Vector(1.2,-0.55,0), Vector(1.9,0.85,0), Vector(2.2,1.6,0)};
+		cms[0] = CatmullRom(list1, 6, Vector(0,0,0), Color(0,0,1)); 
+		
+		Vector list2[6] = {Vector(-2.5,1,0), Vector(-2.2,.1,0.7), Vector(-0.75,-1.1,2.1), 
+			Vector(1.2,-0.55,2.8), Vector(1.9,0.85,1.4), Vector(2.2,1.6,0.6)};
+		cms[1] = CatmullRom(list2, 6, Vector(0,0,0), Color(0,0,1)); 
+		
+		Vector list3[6] = {Vector(-2.5,1,0), Vector(-1.8,0.85,0), Vector(-1.1,0.85,0), 
+			Vector(0.25,1.65,0), Vector(1,1.85,0), Vector(1.6,2,0)};
+		cms[2] = CatmullRom(list3, 6, Vector(0,0,0), Color(0,0,1)); 
+		
+		Vector list4[6] = {Vector(-2.5,1,0), Vector(-2.2,.1,-0.7), Vector(-0.75,-1.1,-2.1), 
+			Vector(1.2,-0.55,-2.8), Vector(1.9,0.85,-1.4), Vector(2.2,1.6,-0.6)};
+		cms[3] = CatmullRom(list4, 6, Vector(0,0,0), Color(0,0,1)); 
+		
+		for (int i = 0; i< bz_siz; i++) {
+			bzs[i].addPoint(list1[i]);
+			bzs[i].addPoint(list2[i]);
+			bzs[i].addPoint(list3[i]);
+			bzs[i].addPoint(list4[i]);
+			bzs[i].addPoint(list1[i]);
+		}
 		
 	}
 	
 	void drawItem() {
-		for (int i = 0; i< cm_siz; i++) cms[i].draw();
+		//for (int i = 0; i< cm_siz; i++) cms[i].draw();
+		
+		
+		
+		for (int i = 0; i< bz_siz; i++) {
+			bzs[i].draw();
+		}
+		
+		for (float i = 0; i<1.0f; i += 0.1f) {
+			Vector list[bz_siz];
+			for (int j = 0; j<bz_siz; j++) {
+				list[j] = bzs[j].r(i);
+			}
+			CatmullRom(list,bz_siz).draw();
+		}
+		
 	}
 	
 	
@@ -640,10 +710,10 @@ void onDisplay( ) {
 
 	
 
-	Sphere a (Vector(0,1,0),1);
+	/*Sphere a (Vector(0,1,0),1);
 	a.draw();
 	Cone b (Vector(2,3,0), 1, 1);
-	b.draw();
+	b.draw();*/
 	//Cylinder c (Vector(-2,5,0), 1, 1);
 	//c.draw();
 	
@@ -659,12 +729,12 @@ void onDisplay( ) {
 	d.draw();
 	*/
 	
-	Vector pts[5] = {Vector(0,0,0), Vector(0,0,1), Vector(0,2,1), Vector(0,2,-1), Vector(0,0,-1)};
+	/*Vector pts[5] = {Vector(0,0,0), Vector(0,0,1), Vector(0,2,1), Vector(0,2,-1), Vector(0,0,-1)};
 	CatmullRom e (pts, 5, Vector(-2,0,0), Color(0,1,0));
-	e.draw();
+	e.draw();*/
 	
-	/*CsirguruBody f(Vector(-2,0,0), Color(1,0,0));
-	f.draw();*/
+	CsirguruBody f(Vector(-2,2,0), Color(1,0,0));
+	f.draw();
 	
 	float shadow_mtx[4][4] = {1,                         0,       0,                       0,
 		                      -lightdir[0]/lightdir[1],  0,     -lightdir[2]/lightdir[1],  0,
@@ -678,7 +748,7 @@ void onDisplay( ) {
 	
 	
 
-	a.draw();
+	//a.draw();
 
 	glutSwapBuffers();     				// Buffercsere: rajzolas vege
 
