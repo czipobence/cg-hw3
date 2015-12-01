@@ -776,8 +776,47 @@ struct Camera {
 
 ////////////////////////////////////////////////////////////////////////
 
+struct CsirguruWrapper {
+	Csirguru* csg;
+	CsirguruWrapper* next;
+	
+	CsirguruWrapper(Vector pos = Vector(0,0,0)) {
+		csg = new Csirguru(Vector(pos));
+		next = NULL;
+	}
+	
+	void drawCsg() {
+		csg -> draw();
+		if (next != NULL)
+			next -> drawCsg();
+	}
+	
+	~CsirguruWrapper() {
+		delete csg;
+	}
+	
+};
+
 struct World {
 	Camera cam;
+	CsirguruWrapper* firstCsg;
+	CsirguruWrapper* lastCsg;
+	
+	World() {
+		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,1,0));
+	}
+	
+	void createCsirguruAtPos(Vector v) {
+		CsirguruWrapper* uj = new CsirguruWrapper(v);
+		lastCsg -> next = uj;
+	}
+	
+	void draw() {
+		firstCsg -> drawCsg();
+	}
+	
+	
+	
 };
 
 World world;
