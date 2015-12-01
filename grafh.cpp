@@ -436,13 +436,13 @@ struct UVDrawable : public ColoredDrawable {
 
 };
 
-struct CsirguruBody1: public ColoredDrawable{
+struct CsirguruBodyHalo: public ColoredDrawable{
 	static const int cm_siz = 4;
 	CatmullRom cms[cm_siz];
 	static const int bz_siz = 6;
 	BezierCurve bzs[bz_siz];
 	
-	CsirguruBody1(Vector p, Color c = Color(1,0,0)) : ColoredDrawable(p,c){
+	CsirguruBodyHalo(Vector p, Color c = Color(1,0,0)) : ColoredDrawable(p,c){
 		/*bzs[0].addPoint(Vector(-2.5,1,0));
 		bzs[0].addPoint(Vector(-2.5,1,0));
 		bzs[0].addPoint(Vector(-2.5,1,0));
@@ -552,7 +552,7 @@ struct CsirguruBody: public UVDrawable{
 		cms[0] = CatmullRom(list1, 6, Vector(0,0,0), Color(0,0,1)); 
 		
 		Vector list2[6] = {Vector(-2.5,1,0), Vector(-2.2,.1,0.7), Vector(-0.75,-1.1,2.1), 
-			Vector(1.2,-0.55,2.8), Vector(1.9,0.85,1.4), Vector(2.2,1.6,0.6)};
+			Vector(1.2,-0.55,2.8), Vector(1.9,0.85,1.4), Vector(2.2,1.6,0.3)};
 		cms[1] = CatmullRom(list2, 6, Vector(0,0,0), Color(0,0,1)); 
 		
 		Vector list3[6] = {Vector(-2.5,1,0), Vector(-1.8,0.85,0), Vector(-1.1,0.85,0), 
@@ -560,7 +560,7 @@ struct CsirguruBody: public UVDrawable{
 		cms[2] = CatmullRom(list3, 6, Vector(0,0,0), Color(0,0,1)); 
 		
 		Vector list4[6] = {Vector(-2.5,1,0), Vector(-2.2,.1,-0.7), Vector(-0.75,-1.1,-2.1), 
-			Vector(1.2,-0.55,-2.8), Vector(1.9,0.85,-1.4), Vector(2.2,1.6,-0.6)};
+			Vector(1.2,-0.55,-2.8), Vector(1.9,0.85,-1.4), Vector(2.2,1.6,-0.3)};
 		cms[3] = CatmullRom(list4, 6, Vector(0,0,0), Color(0,0,1)); 
 		
 		for (int i = 0; i< bz_siz; i++) {
@@ -624,9 +624,9 @@ struct CsirguruBody: public UVDrawable{
 };
 
 struct Cone: public ColoredDrawable {
-	float r,h;
+	float r, h;
 	
-	Cone(Vector p, float h = 1, float r=1, Color c = Color(.9,.6,.2)):
+	Cone(Vector p, Color c = Color(.9,.6,.2), float r = 1, float h = 1):
 	ColoredDrawable(p,c), r(r), h(h) {}
 	
 	virtual void drawItem() {
@@ -662,7 +662,7 @@ struct Cone: public ColoredDrawable {
 struct Cylinder: public ColoredDrawable {
 	float r,h;
 	
-	Cylinder(Vector p, float h = 1, float r=1, Color c = Color(.9,.6,.2)):
+	Cylinder(Vector p, Color c = Color(.9,.6,.2), float h = 1, float r=1):
 	ColoredDrawable(p,c), r(r), h(h) {}
 	
 	virtual void drawItem() {
@@ -726,17 +726,27 @@ struct Sphere: public UVDrawable {
 };
 
 struct Csirguru: public Drawable {
-	static const float HEAD_POS_X = 0.0f;
-	static const float HEAD_POS_Y = 0.0f;
+	static const float HEAD_POS_X = 1.8f;
+	static const float HEAD_POS_Y = 1.4f;
 	static const float HEAD_POS_Z = 0.0f;
 	static const float HEAD_RADIUS = 1.0f;
 	Sphere head;
+	CsirguruBody body;
+	Cone csor;
 	
 	Csirguru (Vector middle): Drawable(middle), 
-					head(p+Vector(HEAD_POS_X,HEAD_POS_Y,HEAD_POS_Z),HEAD_RADIUS) {}
+					head(Vector(HEAD_POS_X,HEAD_POS_Y,HEAD_POS_Z),HEAD_RADIUS),
+					body(Vector(0,0,0), Color(.9,.9,.6)),
+					csor(Vector(2.0,1.3,0.0), Color(.9,.7,.1)) {
+						head.setScale(Vector(.7,.7,.7));
+						csor.setScale(Vector(1.1,0.4,0.4));
+						csor.setRotate(Vector(0,0,-110));
+					}
 	
-	void draw() {
+	void drawItem() {
+		body.draw();
 		head.draw();
+		csor.draw();
 	}
 };
 
@@ -746,8 +756,8 @@ struct Camera {
 	Vector pos,dir,up, eye,right;
 	
 	
-	Camera(	Vector pos=Vector(-0,1,-4), 
-			Vector dir=Vector(0,0,4), 
+	Camera(	Vector pos=Vector(-0,1,4), 
+			Vector dir=Vector(0,0,-4), 
 			Vector up=Vector(0,1,0)):
 			pos(pos), dir(dir), up(up) {
 				fit();
@@ -855,8 +865,11 @@ void onDisplay( ) {
 	CatmullRom e (pts, 5, Vector(-2,0,0), Color(0,1,0));
 	e.draw();*/
 	
-	CsirguruBody f(Vector(-2,2,0), Color(1,0,0));
-	f.draw();
+	//CsirguruBody f(Vector(-2,2,0), Color(1,0,0));
+	//f.draw();
+	
+	Csirguru g(Vector(0,1,0));
+	g.draw();
 	
 	float shadow_mtx[4][4] = {1,                         0,       0,                       0,
 		                      -lightdir[0]/lightdir[1],  0,     -lightdir[2]/lightdir[1],  0,
@@ -869,7 +882,7 @@ void onDisplay( ) {
 	glColor3f(0, 0, 0);
 	
 	
-
+	//f.draw();
 	//a.draw();
 
 	glutSwapBuffers();     				// Buffercsere: rajzolas vege
