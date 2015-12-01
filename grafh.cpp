@@ -522,7 +522,7 @@ struct CsirguruBody: public UVDrawable{
 	BezierCurve bzs[bz_siz];
 	
 	CsirguruBody(Vector p, Color c = Color(1,0,0)) : 
-		UVDrawable(p,c, 0, 1, 30, 0, bz_siz-2,30){
+		UVDrawable(p,c, 0, 1, 20, 0, bz_siz-2,20){
 		/*bzs[0].addPoint(Vector(-2.5,1,0));
 		bzs[0].addPoint(Vector(-2.5,1,0));
 		bzs[0].addPoint(Vector(-2.5,1,0));
@@ -630,7 +630,7 @@ struct Cone: public ColoredDrawable {
 	ColoredDrawable(p,c), r(r), h(h) {}
 	
 	virtual void drawItem() {
-		float dt = 2 * M_PI / 30.0f;
+		float dt = 2 * M_PI / 20.0f;
 		
 		glBegin(GL_TRIANGLE_FAN);
 		
@@ -666,7 +666,7 @@ struct Cylinder: public ColoredDrawable {
 	ColoredDrawable(p,c), r(r), h(h) {}
 	
 	virtual void drawItem() {
-		float dt = 2 * M_PI / 30.0f;
+		float dt = 2 * M_PI / 20.0f;
 		
 		glBegin(GL_TRIANGLE_STRIP);
 		
@@ -711,7 +711,7 @@ struct Sphere: public UVDrawable {
 	float r;
 	
 	Sphere(Vector center, float radius = 1, Color c = Color(.9,.9,.6)):
-	UVDrawable(center,c,0,2*M_PI,40,0,M_PI,20),r(radius) {} 
+	UVDrawable(center,c,0,2*M_PI,20,0,M_PI,10),r(radius) {} 
 	
 	Vector getVal(float u, float v) {
 		return Vector (
@@ -737,9 +737,9 @@ struct Csirguru: public Drawable {
 	Csirguru (Vector middle): Drawable(middle), 
 					head(Vector(HEAD_POS_X,HEAD_POS_Y,HEAD_POS_Z),HEAD_RADIUS),
 					body(Vector(0,0,0), Color(.9,.9,.6)),
-					csor(Vector(2.0,1.3,0.0), Color(.9,.7,.1)) {
+					csor(Vector(2.0,1.3,0.0), Color(.9,.7,.1), 0.4, 1.1) {
 						head.setScale(Vector(.7,.7,.7));
-						csor.setScale(Vector(1.1,0.4,0.4));
+						//csor.setScale(Vector(1.1,0.4,0.4));
 						csor.setRotate(Vector(0,0,-110));
 					}
 	
@@ -806,9 +806,10 @@ struct World {
 		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,1,0));
 	}
 	
-	void createCsirguruAtPos(Vector v) {
+	void createCsirguru(Vector v) {
 		CsirguruWrapper* uj = new CsirguruWrapper(v);
 		lastCsg -> next = uj;
+		lastCsg = uj;
 	}
 	
 	void draw() {
@@ -907,8 +908,31 @@ void onDisplay( ) {
 	//CsirguruBody f(Vector(-2,2,0), Color(1,0,0));
 	//f.draw();
 	
-	Csirguru g(Vector(0,1,0));
-	g.draw();
+	//Csirguru g(Vector(0,1,0));
+	//g.draw();
+	
+	world.createCsirguru(Vector(5,1,0));
+	
+	world.createCsirguru(Vector(0,1,5));
+	
+	world.createCsirguru(Vector(5,1,5));
+	
+	world.createCsirguru(Vector(0,1,-5));
+	
+	world.createCsirguru(Vector(5,1,-5));
+	
+	
+	world.createCsirguru(Vector(5,4,0));
+	
+	world.createCsirguru(Vector(0,4,5));
+	
+	world.createCsirguru(Vector(5,4,5));
+	
+	world.createCsirguru(Vector(0,4,-5));
+	
+	world.createCsirguru(Vector(5,4,-5));
+	
+	world.draw();
 	
 	float shadow_mtx[4][4] = {1,                         0,       0,                       0,
 		                      -lightdir[0]/lightdir[1],  0,     -lightdir[2]/lightdir[1],  0,
