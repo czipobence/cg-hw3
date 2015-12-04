@@ -145,27 +145,17 @@ const int SCREEN_HEIGHT = 600;
 
 Color image[SCREEN_WIDTH*SCREEN_HEIGHT];	// egy alkalmazás ablaknyi kép
 
-void glVertex3f(const Vector& v) {
+void putVertex(const Vector& v) {
   glVertex3f(v.x, v.y, v.z);
 }
 
-void glNormal3f(const Vector& v) {
+void setNormal(const Vector& v) {
   glNormal3f(v.x, v.y, v.z);
 }
 
-void glMaterialfv(GLenum face, GLenum p, Color c) {
+void setColor(GLenum face, GLenum p, Color c) {
 	float arr[4] = {c.r,c.g,c.b,1};
 	glMaterialfv(face,p,arr);
-}
-
-void glTranslatef(Vector v) {
-	glTranslatef(v.x,v.y,v.z);
-}
-void glRotatef(float angle, Vector v) {
-	glRotatef(angle,v.x,v.y,v.z);
-}
-void glScalef(Vector v) {
-	glScalef(v.x,v.y,v.z);
 }
 
 struct Drawable {
@@ -187,8 +177,8 @@ struct Drawable {
 	
 	void draw() {
 		glPushMatrix();
-		if (!p.isZero())					glTranslatef(p);
-		if (!sc.isZero())					glScalef(sc);
+		if (!p.isZero())					glTranslatef(p.x,p.y,p.z);
+		if (!sc.isZero())					glScalef(sc.x,sc.y,sc.z);
 		if (!(fabs(rot.x) < EPSILON))		glRotatef(rot.x,1,0,0);
 		if (!(fabs(rot.y) < EPSILON))		glRotatef(rot.y,0,1,0);
 		if (!(fabs(rot.z) < EPSILON))		glRotatef(rot.z,0,0,1);
@@ -207,7 +197,7 @@ struct Plain : public Drawable {
 		glBegin( GL_QUADS );
 		for( int x = -20; x < 20; x++ ) {
 			for( int z = -20; z < 20; z++ ) {
-				glMaterialfv( GL_FRONT, GL_DIFFUSE, (x ^ z) & 1 ? WHITE : GRAY);
+				setColor( GL_FRONT, GL_DIFFUSE, (x ^ z) & 1 ? WHITE : GRAY);
 				glVertex3f(x * 1,     0, z * 1);
 				glVertex3f((x+1) * 1, 0, z * 1);
 				glVertex3f((x+1) * 1, 0, (z+1) * 1);
@@ -225,8 +215,8 @@ struct ColoredDrawable: public Drawable {
 	ColoredDrawable(Vector p, Color c) : Drawable(p), kd(c) {}
 	
 	void setProperties() {
-		glMaterialfv(GL_FRONT,GL_AMBIENT, kd*.3);
-        glMaterialfv(GL_FRONT,GL_DIFFUSE, kd);
+		setColor(GL_FRONT,GL_AMBIENT, kd*.3);
+        setColor(GL_FRONT,GL_DIFFUSE, kd);
         //glMaterialfv(GL_FRONT,GL_SPECULAR, ks);
         //glMaterialf (GL_FRONT,GL_SHININESS, 50);
 	}
@@ -279,13 +269,13 @@ struct BezierCurve : public ColoredDrawable {
    
 	void drawItem() {
 	
-		glEnable(GL_COLOR_MATERIAL);
-		glColor3f(kd.r, kd.g, kd.b);
+		//glEnable(GL_COLOR_MATERIAL);
+		//glColor3f(kd.r, kd.g, kd.b);
 		
 		glBegin(GL_LINE_STRIP);
 		
 		for (float t = 0; t < 1; t+= 0.01) {
-			glVertex3f(getVal(t));
+			putVertex(getVal(t));
 		}
 		
 		glEnd();
@@ -299,7 +289,7 @@ struct BezierCurve : public ColoredDrawable {
 		glEnd();*/
 		
 		
-		glDisable(GL_COLOR_MATERIAL);   
+		//glDisable(GL_COLOR_MATERIAL);   
 	}
    
    
@@ -376,13 +366,13 @@ struct CatmullRom : ColoredDrawable {
 	
 	void drawItem() {
 	
-		glEnable(GL_COLOR_MATERIAL);
-		glColor3f(kd.r, kd.g, kd.b);
+		//glEnable(GL_COLOR_MATERIAL);
+		//glColor3f(kd.r, kd.g, kd.b);
 		
 		glBegin(GL_LINE_STRIP);
 		
 		for (float t = 0; t < n; t+= 0.01) {
-			glVertex3f(getVal(t));
+			putVertex(getVal(t));
 		}
 		
 		glEnd();
@@ -397,7 +387,7 @@ struct CatmullRom : ColoredDrawable {
 		glEnd();
 		*/
 		
-		glDisable(GL_COLOR_MATERIAL);   
+		//glDisable(GL_COLOR_MATERIAL);   
 	}
 	 
 };
@@ -418,8 +408,8 @@ struct UVDrawable : public ColoredDrawable {
 	
 
 	void putPoint(float u, float v) {
-		glNormal3f(getNorm(u,v));
-		glVertex3f(getVal(u,v));		
+		setNormal(getNorm(u,v));
+		putVertex(getVal(u,v));		
 	}
 
 	void drawItem (){
@@ -782,15 +772,16 @@ struct Camera {
 	Vector pos,dir,up, eye,right;
 	
 	
-	Camera(	Vector pos=Vector(-0,1,4), 
-			Vector dir=Vector(0,0,-4), 
+	Camera(	Vector pos=Vector(2,8,8), 
+			Vector dir=Vector(0,-1,-1), 
 			Vector up=Vector(0,1,0)):
 			pos(pos), dir(dir), up(up) {
 				fit();
 			} 
 			
 	void fit() {
-		eye = pos + dir;		
+		eye = pos + dir;
+		dir = dir.norm();
 		this -> right = (dir % up).norm();
 		this -> up = (this-> right % this->dir).norm();
 	}
@@ -897,7 +888,7 @@ void onDisplay( ) {
 	
 	glLightfv(GL_LIGHT0, GL_POSITION, lightdir);
 	
-	glMaterialfv( GL_FRONT, GL_AMBIENT, GRAY);
+	setColor( GL_FRONT, GL_AMBIENT, GRAY);
 	//glMaterialfv( GL_FRONT, GL_SPECULAR, BLACK);	
 	
 	glClearColor(0.1f, 0.2f, 0.3f, 1.0f);		// torlesi szin beallitasa
@@ -910,7 +901,7 @@ void onDisplay( ) {
 	glBegin( GL_QUADS );
 	for( int x = -10; x < 10; x++ ) {
 		for( int z = -10; z < 10; z++ ) {
-			glMaterialfv( GL_FRONT, GL_DIFFUSE, (x ^ z) & 1 ? WHITE : GRAY);
+			setColor( GL_FRONT, GL_DIFFUSE, (x ^ z) & 1 ? WHITE : GRAY);
 			glNormal3f(0,1,0);
 			glVertex3f(x * 1,     0, z * 1);
 			glVertex3f((x+1) * 1, 0, z * 1);
@@ -966,6 +957,7 @@ void onDisplay( ) {
 	glDisable(GL_LIGHTING);
 	glColor3f(0, 0, 0);
 	
+	world.draw();
 	
 	//f.draw();
 	//a.draw();
