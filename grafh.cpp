@@ -466,22 +466,22 @@ struct CsirguruBodyHalo: public ColoredDrawable{
 		
 		
 		
-		
 		Vector list1[6] = {Vector(-2.5,1,0), Vector(-2.2,.1,0), Vector(-0.75,-1.1,0), 
 			Vector(1.2,-0.55,0), Vector(1.9,0.85,0), Vector(2.2,1.6,0)};
 		cms[0] = CatmullRom(list1, 6, Vector(0,0,0), Color(0,0,1)); 
 		
-		Vector list2[6] = {Vector(-2.5,1,0), Vector(-2.2,.1,0.7), Vector(-0.75,-1.1,2.1), 
-			Vector(1.2,-0.55,2.8), Vector(1.9,0.85,1.4), Vector(2.2,1.6,0.6)};
+		Vector list2[6] = {Vector(-2.5,1,0.01), Vector(-2.2,.1,0.7), Vector(-0.75,-1.1,2.1), 
+			Vector(1.2,-0.55,2.8), Vector(1.9,0.85,1.4), Vector(2.2,1.6,0.3)};
 		cms[1] = CatmullRom(list2, 6, Vector(0,0,0), Color(0,0,1)); 
 		
-		Vector list3[6] = {Vector(-2.5,1,0), Vector(-1.8,0.85,0), Vector(-1.1,0.85,0), 
+		Vector list3[6] = {Vector(-2.5,1.01,0), Vector(-1.8,0.85,0), Vector(-1.1,0.85,0), 
 			Vector(0.25,1.65,0), Vector(1,1.85,0), Vector(1.6,2,0)};
 		cms[2] = CatmullRom(list3, 6, Vector(0,0,0), Color(0,0,1)); 
 		
-		Vector list4[6] = {Vector(-2.5,1,0), Vector(-2.2,.1,-0.7), Vector(-0.75,-1.1,-2.1), 
-			Vector(1.2,-0.55,-2.8), Vector(1.9,0.85,-1.4), Vector(2.2,1.6,-0.6)};
+		Vector list4[6] = {Vector(-2.5,1,-0.01), Vector(-2.2,.1,-0.7), Vector(-0.75,-1.1,-2.1), 
+			Vector(1.2,-0.55,-2.8), Vector(1.9,0.85,-1.4), Vector(2.2,1.6,-0.3)};
 		cms[3] = CatmullRom(list4, 6, Vector(0,0,0), Color(0,0,1)); 
+		
 		
 		for (int i = 0; i< bz_siz; i++) {
 			bzs[i].addPoint(list1[i]);
@@ -551,15 +551,15 @@ struct CsirguruBody: public UVDrawable{
 			Vector(1.2,-0.55,0), Vector(1.9,0.85,0), Vector(2.2,1.6,0)};
 		cms[0] = CatmullRom(list1, 6, Vector(0,0,0), Color(0,0,1)); 
 		
-		Vector list2[6] = {Vector(-2.5,1,0), Vector(-2.2,.1,0.7), Vector(-0.75,-1.1,2.1), 
+		Vector list2[6] = {Vector(-2.5,1,0.01), Vector(-2.2,.1,0.7), Vector(-0.75,-1.1,2.1), 
 			Vector(1.2,-0.55,2.8), Vector(1.9,0.85,1.4), Vector(2.2,1.6,0.3)};
 		cms[1] = CatmullRom(list2, 6, Vector(0,0,0), Color(0,0,1)); 
 		
-		Vector list3[6] = {Vector(-2.5,1,0), Vector(-1.8,0.85,0), Vector(-1.1,0.85,0), 
+		Vector list3[6] = {Vector(-2.5,1.01,0), Vector(-1.8,0.85,0), Vector(-1.1,0.85,0), 
 			Vector(0.25,1.65,0), Vector(1,1.85,0), Vector(1.6,2,0)};
 		cms[2] = CatmullRom(list3, 6, Vector(0,0,0), Color(0,0,1)); 
 		
-		Vector list4[6] = {Vector(-2.5,1,0), Vector(-2.2,.1,-0.7), Vector(-0.75,-1.1,-2.1), 
+		Vector list4[6] = {Vector(-2.5,1,-0.01), Vector(-2.2,.1,-0.7), Vector(-0.75,-1.1,-2.1), 
 			Vector(1.2,-0.55,-2.8), Vector(1.9,0.85,-1.4), Vector(2.2,1.6,-0.3)};
 		cms[3] = CatmullRom(list4, 6, Vector(0,0,0), Color(0,0,1)); 
 		
@@ -630,14 +630,15 @@ struct Cone: public ColoredDrawable {
 	ColoredDrawable(p,c), r(r), h(h) {}
 	
 	virtual void drawItem() {
-		float dt = 2 * M_PI / 20.0f;
+		float step = 2 * M_PI / 20.0f;
 		
 		glBegin(GL_TRIANGLE_FAN);
 		
 		glNormal3f(0,1,0);
 		glVertex3f(0,h,0);
 		
-		for (float t = 0; t < 2.0*M_PI; t += dt) {
+		for (int i = 0; i<21;i++) {
+			float t = i * step;
 			glNormal3f(cos(t),0,sin(t));
 			glVertex3f(r*cos(t), 0, r * sin(t));
 		}
@@ -649,7 +650,8 @@ struct Cone: public ColoredDrawable {
 		glNormal3f(0,-1,0);
 		glVertex3f(0,0,0);
 		
-		for (float t = 0; t < 2.0*M_PI + EPSILON ; t += dt) {
+		for (int i = 0; i<21;i++) {
+			float t = i * step;
 			glVertex3f(r*sin(t), 0, r * cos(t));
 		}
 		
@@ -804,6 +806,20 @@ struct World {
 	
 	World() {
 		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,1,0));
+		
+		
+	createCsirguru(Vector(5,1,0));
+	createCsirguru(Vector(0,1,5));
+	createCsirguru(Vector(5,1,5));
+	createCsirguru(Vector(0,1,-5));
+	createCsirguru(Vector(5,1,-5));
+	createCsirguru(Vector(5,4,0));
+	createCsirguru(Vector(0,4,5));
+	createCsirguru(Vector(5,4,5));
+	createCsirguru(Vector(0,4,-5));
+	createCsirguru(Vector(5,4,-5));
+	
+		
 	}
 	
 	void createCsirguru(Vector v) {
@@ -911,28 +927,10 @@ void onDisplay( ) {
 	//Csirguru g(Vector(0,1,0));
 	//g.draw();
 	
-	world.createCsirguru(Vector(5,1,0));
-	
-	world.createCsirguru(Vector(0,1,5));
-	
-	world.createCsirguru(Vector(5,1,5));
-	
-	world.createCsirguru(Vector(0,1,-5));
-	
-	world.createCsirguru(Vector(5,1,-5));
-	
-	
-	world.createCsirguru(Vector(5,4,0));
-	
-	world.createCsirguru(Vector(0,4,5));
-	
-	world.createCsirguru(Vector(5,4,5));
-	
-	world.createCsirguru(Vector(0,4,-5));
-	
-	world.createCsirguru(Vector(5,4,-5));
-	
 	world.draw();
+	
+	CsirguruBodyHalo h (Vector(0,1,0));
+	//h.draw();
 	
 	float shadow_mtx[4][4] = {1,                         0,       0,                       0,
 		                      -lightdir[0]/lightdir[1],  0,     -lightdir[2]/lightdir[1],  0,
