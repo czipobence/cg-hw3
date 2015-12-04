@@ -135,6 +135,10 @@ const Color WHITE(1,1,1);
 const Color GRAY(.2,.2,.2);
 const Color BLACK(0,0,0);
 
+const Color CHICKEN_CREST_COLOR (.9,0,0);
+const Color CHICKEN_BODY_COLOR (.8,.8,.6);
+const Color CHICKEN_BILL_COLOR (.9,.7,.1);
+
 const int SCREEN_WIDTH = 600;	// alkalmazás ablak felbontása
 const int SCREEN_HEIGHT = 600;
 
@@ -179,6 +183,7 @@ struct Drawable {
 	void setTranslate(const Vector& v) {p = v;}
 	
 	void setRotate(const Vector& v) {rot = v;}
+	void setRotate(float rx, float ry, float rz) {rot = Vector(rx,ry,rz);}
 	
 	void draw() {
 		glPushMatrix();
@@ -627,7 +632,7 @@ struct Cone: public ColoredDrawable {
 	float r, h;
 	static const float step = 2 * M_PI / 20.0f;
 	
-	Cone(Vector p, Color c = Color(.9,.6,.2), float r = 1, float h = 1):
+	Cone(Vector p = Vector(0,0,0), Color c = Color(), float r = 1, float h = 1):
 	ColoredDrawable(p,c), r(r), h(h) {}
 	
 	virtual void drawItem() {
@@ -665,7 +670,7 @@ struct Cylinder: public ColoredDrawable {
 	float r,h;
 	static const float step = 2 * M_PI / 20.0f;
 	
-	Cylinder(Vector p, Color c = Color(.9,.6,.2), float h = 1, float r=1):
+	Cylinder(Vector p, Color c = Color(), float h = 1, float r=1):
 	ColoredDrawable(p,c), r(r), h(h) {}
 	
 	virtual void drawItem() {
@@ -713,7 +718,7 @@ struct Cylinder: public ColoredDrawable {
 struct Sphere: public UVDrawable {
 	float r;
 	
-	Sphere(Vector center, float radius = 1, Color c = Color(.9,.9,.6)):
+	Sphere(Vector center, float radius = 1, Color c = Color()):
 	UVDrawable(center,c,0,2*M_PI,20,0,M_PI,10),r(radius) {} 
 	
 	Vector getVal(float u, float v) {
@@ -728,28 +733,46 @@ struct Sphere: public UVDrawable {
 	
 };
 
+struct Bone: public Drawable{
+	Cylinder b;
+	Sphere j;
+	
+	Bone(Vector p, int len) : Drawable(p), b(p), j(p) {}
+	
+	void draw() {
+		b.draw();
+		j.draw();
+	}
+	
+};
+
 struct Csirguru: public Drawable {
-	static const float HEAD_POS_X = 1.8f;
-	static const float HEAD_POS_Y = 1.4f;
-	static const float HEAD_POS_Z = 0.0f;
-	static const float HEAD_RADIUS = 1.0f;
+	
 	Sphere head;
 	CsirguruBody body;
-	Cone csor;
+	Cone bill;
+	Cone crest[3];
 	
 	Csirguru (Vector middle): Drawable(middle), 
-					head(Vector(HEAD_POS_X,HEAD_POS_Y,HEAD_POS_Z),HEAD_RADIUS),
-					body(Vector(0,0,0), Color(.9,.9,.6)),
-					csor(Vector(2.0,1.3,0.0), Color(.9,.7,.1), 0.4, 1.1) {
-						head.setScale(Vector(.7,.7,.7));
-						//csor.setScale(Vector(1.1,0.4,0.4));
-						csor.setRotate(Vector(0,0,-110));
+					head(Vector(1.8,1.4,0),.7,CHICKEN_BODY_COLOR),
+					body(Vector(0,0,0), CHICKEN_BODY_COLOR),
+					bill(Vector(2.0,1.3,0.0), CHICKEN_BILL_COLOR, 0.4, 1.1) {
+						bill.setRotate(0,0,-110);
+						crest[0] = Cone(head.p+Vector(0,.6,0), CHICKEN_CREST_COLOR, .3,.7);
+						crest[1] = Cone(head.p+Vector(-.2,.5,0), CHICKEN_CREST_COLOR, .3,.7);
+						crest[1].setRotate(0,0,20);
+						crest[2] = Cone(head.p+Vector(.2,.5,0), CHICKEN_CREST_COLOR, .3,.7);
+						crest[2].setRotate(0,0,-20);
+						
 					}
 	
 	void drawItem() {
 		body.draw();
 		head.draw();
-		csor.draw();
+		bill.draw();
+		for (int i = 0; i < 3; i++) {
+			crest[i].draw();
+		}
 	}
 };
 
