@@ -853,6 +853,63 @@ struct World {
 
 World world;
 
+////////////////////////////////////////////////////////////////////////
+// TEX T�RA
+////////////////////////////////////////////////////////////////////////
+
+GLuint tex;
+
+void CreateTextures() {
+  glGenTextures(1,  &tex);
+
+  const char* ascii_textures = {
+    "........"
+    "...**..."
+    "....*..."
+    "....*..."
+    "....*..."
+    "....*..."
+    "...***.."
+    "........"
+  };
+
+  GLubyte texture_data[64][3];
+    for(int i = 0; i < 64; i++) {
+      switch(ascii_textures[i]) {
+        case '*':
+          for(int j = 0; j < 3; j++) {
+            texture_data[i][j] = 0;
+          }
+          break;
+        case '+':
+          for(int j = 0; j < 3; j++) {
+            texture_data[i][j] = 127;
+          }
+          break;
+        default:
+          for(int j = 0; j < 3; j++) {
+            texture_data[i][j] = 255;
+          }
+          break;
+      }
+    }
+
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, 8, 8, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data);
+
+  glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+/////////////////////////////////////////////////////////////////////////
+// END
+/////////////////////////////////////////////////////////////////////////
+
+
+
+
+
 void onInitialization( ) { 
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 	
@@ -872,6 +929,9 @@ void onInitialization( ) {
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	CreateTextures();
+    
 }
 
 float lightdir[4] = {1,1,1,0};
@@ -896,21 +956,29 @@ void onDisplay( ) {
 
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
-
 	
-	glBegin( GL_QUADS );
+	glEnable(GL_TEXTURE_2D); 
+	setColor( GL_FRONT, GL_DIFFUSE, WHITE);
 	for( int x = -10; x < 10; x++ ) {
 		for( int z = -10; z < 10; z++ ) {
-			setColor( GL_FRONT, GL_DIFFUSE, (x ^ z) & 1 ? WHITE : GRAY);
-			glNormal3f(0,1,0);
-			glVertex3f(x * 1,     0, z * 1);
-			glVertex3f((x+1) * 1, 0, z * 1);
-			glVertex3f((x+1) * 1, 0, (z+1) * 1);
-			glVertex3f(x * 1,     0, (z+1) * 1);
-		}
-	}
-	glEnd( );
+			glBindTexture(GL_TEXTURE_2D, tex); // Ezt semmiképpen se rakd a glBegin - glEnd blokk közé
 
+			glBegin(GL_QUADS);			
+				glNormal3f(0,1,0);
+				glTexCoord2f(0, 0);
+				glVertex3f(x * 1,     0, z * 1);
+				glTexCoord2f(1, 0);
+				glVertex3f((x+1) * 1, 0, z * 1);
+				glTexCoord2f(1, 1);
+				glVertex3f((x+1) * 1, 0, (z+1) * 1);
+				glTexCoord2f(0, 1);
+				glVertex3f(x * 1,     0, (z+1) * 1);
+			glEnd();
+		}
+    }
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
 	
 
 	/*Sphere a (Vector(0,1,0),1);
