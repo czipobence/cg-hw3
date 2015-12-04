@@ -625,12 +625,12 @@ struct CsirguruBody: public UVDrawable{
 
 struct Cone: public ColoredDrawable {
 	float r, h;
+	static const float step = 2 * M_PI / 20.0f;
 	
 	Cone(Vector p, Color c = Color(.9,.6,.2), float r = 1, float h = 1):
 	ColoredDrawable(p,c), r(r), h(h) {}
 	
 	virtual void drawItem() {
-		float step = 2 * M_PI / 20.0f;
 		
 		glBegin(GL_TRIANGLE_FAN);
 		
@@ -663,17 +663,16 @@ struct Cone: public ColoredDrawable {
 
 struct Cylinder: public ColoredDrawable {
 	float r,h;
+	static const float step = 2 * M_PI / 20.0f;
 	
 	Cylinder(Vector p, Color c = Color(.9,.6,.2), float h = 1, float r=1):
 	ColoredDrawable(p,c), r(r), h(h) {}
 	
 	virtual void drawItem() {
-		float dt = 2 * M_PI / 20.0f;
-		
 		glBegin(GL_TRIANGLE_STRIP);
 		
-		
-		for (float t = 0; t < 2.0*M_PI; t += dt) {
+		for (int i = 0; i<21; i++) {
+			float t = i * step;
 			glNormal3f(sin(t),0,cos(t));
 			glVertex3f(r*sin(t), 0, r * cos(t));
 			glVertex3f(r*sin(t), h, r * cos(t));
@@ -686,7 +685,8 @@ struct Cylinder: public ColoredDrawable {
 		glNormal3f(0,1,0);
 		glVertex3f(0,h,0);
 		
-		for (float t = 0; t < 2.0*M_PI + EPSILON ; t += dt) {
+		for (int i = 0; i<21; i++) {
+			float t = i * step;
 			glVertex3f(r*cos(t), h, r * sin(t));
 		}
 		
@@ -697,7 +697,8 @@ struct Cylinder: public ColoredDrawable {
 		glNormal3f(0,-1,0);
 		glVertex3f(0,0,0);
 		
-		for (float t = 0; t < 2.0*M_PI + EPSILON ; t += dt) {
+		for (int i = 0; i<21; i++) {
+			float t = i * step;
 			glVertex3f(r*sin(t), 0, r * cos(t));
 		}
 		
