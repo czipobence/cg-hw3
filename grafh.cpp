@@ -174,10 +174,10 @@ struct Drawable {
 	void draw() {
 		glPushMatrix();
 		if (!p.isZero())					glTranslatef(p.x,p.y,p.z);
-		if (!sc.isZero())					glScalef(sc.x,sc.y,sc.z);
 		if (!(fabs(rot.x) < EPSILON))		glRotatef(rot.x,1,0,0);
 		if (!(fabs(rot.y) < EPSILON))		glRotatef(rot.y,0,1,0);
 		if (!(fabs(rot.z) < EPSILON))		glRotatef(rot.z,0,0,1);
+		if (!sc.isZero())					glScalef(sc.x,sc.y,sc.z);
 		
 		setProperties();
 		drawItem();
@@ -736,23 +736,36 @@ const Color CHICKEN_CREST_COLOR (.9,0,0);
 const Color CHICKEN_BODY_COLOR (.8,.8,.6);
 const Color CHICKEN_BILL_COLOR (.9,.7,.1);
 const Color CHICKEN_EYE_COLOR = BLACK;
+const Color CHICKEN_LEG_COLOR (1,1,0);
 
 struct Csirguru: public Drawable {
 	
-	static const int NUM_OF_PARTS = 8;
+	static const float LEG_ANGLE_INIT = 30;
+	static const float CHICKEN_BONE_RADIUS = 0.05;
 	
-	Drawable* parts[NUM_OF_PARTS];
+	float legAngle;
 	
-	Sphere head;
+	/*static const int NUM_OF_PARTS = 8;
+	
+	Drawable* parts[NUM_OF_PARTS];*/
+	
 	CsirguruBody body;
+	Sphere head;
 	Cone bill;
 	Cone crest[3];
 	Sphere eye[2];
+	Cylinder toe;
+	Cylinder foot;
+	Cylinder leg;
 	
 	Csirguru (Vector middle): Drawable(middle), 
-					head(Vector(0.55,0.38,0),.32,CHICKEN_BODY_COLOR),
-					body(Vector(0,0,0), CHICKEN_BODY_COLOR),
-					bill(Vector(head.p + Vector(.1,-0.05,0)), CHICKEN_BILL_COLOR, 0.22, .4) {
+					legAngle(LEG_ANGLE_INIT),
+					body(Vector(0,.5,0), CHICKEN_BODY_COLOR),
+					head(body.p + Vector(0.55,0.38,0),.32,CHICKEN_BODY_COLOR),
+					bill(Vector(head.p + Vector(.1,-0.05,0)), CHICKEN_BILL_COLOR, 0.22, .4),
+					toe(Vector(0,CHICKEN_BONE_RADIUS,0), CHICKEN_LEG_COLOR, .5, CHICKEN_BONE_RADIUS),
+					foot(Vector(0,CHICKEN_BONE_RADIUS,0), CHICKEN_LEG_COLOR, .5,  CHICKEN_BONE_RADIUS),
+					leg(Vector(0,0,0), CHICKEN_LEG_COLOR, .5, CHICKEN_BONE_RADIUS) {
 						bill.setRotate(0,0,-110);
 						crest[0] = Cone(head.p+Vector(0.04,.28,0), CHICKEN_CREST_COLOR, .1,.23);
 						crest[1] = Cone(head.p+Vector(-0.07,.25,0), CHICKEN_CREST_COLOR, .1,.23);
@@ -762,7 +775,9 @@ struct Csirguru: public Drawable {
 						eye[0] = Sphere(head.p + Vector(0.28,0.07,-0.12), 0.05, CHICKEN_EYE_COLOR);
 						eye[1] = Sphere(head.p + Vector(0.28,0.07,0.12), 0.05, CHICKEN_EYE_COLOR);
 						
-						parts[0] = new CsirguruBody(Vector(0,0,0), CHICKEN_BODY_COLOR);
+						toe.setRotate(Vector(0,0,-90));
+						
+						/*parts[0] = new CsirguruBody(Vector(0,0,0), CHICKEN_BODY_COLOR);
 						
 						parts[1] = new Sphere(Vector(0.55,0.38,0),.32,CHICKEN_BODY_COLOR);
 						
@@ -779,22 +794,44 @@ struct Csirguru: public Drawable {
 						
 						
 						parts[6] = new Sphere(head.p + Vector(0.28,0.07,-0.12), 0.05, CHICKEN_EYE_COLOR);
-						parts[7] = new Sphere(head.p + Vector(0.28,0.07,0.12), 0.05, CHICKEN_EYE_COLOR);
+						parts[7] = new Sphere(head.p + Vector(0.28,0.07,0.12), 0.05, CHICKEN_EYE_COLOR);*/
 						
 					}
 	
 	void drawItem() {
-		/*body.draw();
+		float angRad = legAngle * M_PI / 180.0;
+		toe.draw();
+		
+		foot.setRotate(Vector(0,0,(legAngle-90)));
+		foot.draw();
+		
+		
+		leg.setRotate(Vector(0,0,90-legAngle));
+		leg.setTranslate(Vector(0.5*cos(angRad),2*CHICKEN_BONE_RADIUS+0.5*sin(angRad),0));
+		leg.draw();
+		
+		glPushMatrix();
+		glTranslatef(0,0.5 * 2* sin(angRad) + 2*CHICKEN_BONE_RADIUS, 0);
+		
+		body.draw();
 		head.draw();
 		bill.draw();
 		for (int i = 0; i < 3; i++) {
 			crest[i].draw();
 		}
 		eye[0].draw();
-		eye[1].draw();*/
-		for (int i = 0 ; i<NUM_OF_PARTS;i++) {
+		eye[1].draw();
+		glPopMatrix();
+
+		/*for (int i = 0 ; i<NUM_OF_PARTS;i++) {
 			parts[i] -> draw();
-		}
+		}*/
+	}
+	
+	~Csirguru () {
+		/*for (int i = 0 ; i<NUM_OF_PARTS;i++) {
+			delete parts[i];
+		}*/
 	}
 };
 
@@ -852,7 +889,7 @@ struct World {
 	CsirguruWrapper* lastCsg;
 	
 	World() {
-		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,1,0));
+		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,0,0));
 		
 		
 	/*createCsirguru(Vector(5,1,0));
