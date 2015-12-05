@@ -739,6 +739,10 @@ const Color CHICKEN_EYE_COLOR = BLACK;
 
 struct Csirguru: public Drawable {
 	
+	static const int NUM_OF_PARTS = 8;
+	
+	Drawable* parts[NUM_OF_PARTS];
+	
 	Sphere head;
 	CsirguruBody body;
 	Cone bill;
@@ -757,17 +761,40 @@ struct Csirguru: public Drawable {
 						crest[2].setRotate(0,0,-20);
 						eye[0] = Sphere(head.p + Vector(0.28,0.07,-0.12), 0.05, CHICKEN_EYE_COLOR);
 						eye[1] = Sphere(head.p + Vector(0.28,0.07,0.12), 0.05, CHICKEN_EYE_COLOR);
+						
+						parts[0] = new CsirguruBody(Vector(0,0,0), CHICKEN_BODY_COLOR);
+						
+						parts[1] = new Sphere(Vector(0.55,0.38,0),.32,CHICKEN_BODY_COLOR);
+						
+						parts[2] = new Cone(Vector(head.p + Vector(.1,-0.05,0)), CHICKEN_BILL_COLOR, 0.22, .4);
+						parts[2] -> setRotate(0,0,-110);
+						
+						parts[3] = new Cone(head.p+Vector(0.04,.28,0), CHICKEN_CREST_COLOR, .1,.23);
+						
+						parts[4] = new Cone(head.p+Vector(-0.07,.25,0), CHICKEN_CREST_COLOR, .1,.23);
+						parts[4] -> setRotate(0,0,20);
+						
+						parts[5] = new Cone(head.p+Vector(.14,.25,0), CHICKEN_CREST_COLOR, .1,.23);
+						parts[5] -> setRotate(0,0,-20);
+						
+						
+						parts[6] = new Sphere(head.p + Vector(0.28,0.07,-0.12), 0.05, CHICKEN_EYE_COLOR);
+						parts[7] = new Sphere(head.p + Vector(0.28,0.07,0.12), 0.05, CHICKEN_EYE_COLOR);
+						
 					}
 	
 	void drawItem() {
-		body.draw();
+		/*body.draw();
 		head.draw();
 		bill.draw();
 		for (int i = 0; i < 3; i++) {
 			crest[i].draw();
 		}
 		eye[0].draw();
-		eye[1].draw();
+		eye[1].draw();*/
+		for (int i = 0 ; i<NUM_OF_PARTS;i++) {
+			parts[i] -> draw();
+		}
 	}
 };
 
