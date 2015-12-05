@@ -173,6 +173,7 @@ struct Drawable {
 	
 	void draw() {
 		glPushMatrix();
+		
 		if (!p.isZero())					glTranslatef(p.x,p.y,p.z);
 		if (!(fabs(rot.x) < EPSILON))		glRotatef(rot.x,1,0,0);
 		if (!(fabs(rot.y) < EPSILON))		glRotatef(rot.y,0,1,0);
@@ -741,9 +742,18 @@ const Color CHICKEN_LEG_COLOR (1,1,0);
 struct Csirguru: public Drawable {
 	
 	static const float CHICKEN_HEIGHT_START = 0.5;
-	static const float CHICKEN_HEIGHT_MIN = 0.3;
 	static const float CHICKEN_BONE_RADIUS = 0.05;
 	static const float CHICKEN_BONE_LENGTH = 0.3;
+	static const float G = 3;
+	
+	const static float A = 2;
+	const static float V0 = 1.1265;
+	const static float V1 = 1;
+	
+	static const float JMP_ANGLE_SIN = 0.8;
+	static const float JMP_ANGLE_COS = 0.6;
+	
+	Vector p0,rot0;
 	
 	float c_height;
 	int phase;
@@ -765,6 +775,8 @@ struct Csirguru: public Drawable {
 	Cylinder leg;
 	Sphere knee;
 	
+	int cnt;
+	
 	Csirguru (Vector middle): Drawable(middle), 
 					c_height(CHICKEN_HEIGHT_START), phase(0),
 					body(Vector(0,.5,0), CHICKEN_BODY_COLOR),
@@ -776,8 +788,8 @@ struct Csirguru: public Drawable {
 					ankle(Vector(0,0,0), CHICKEN_LEG_COLOR, CHICKEN_BONE_RADIUS),
 					leg(Vector(0,0,0), CHICKEN_LEG_COLOR, CHICKEN_BONE_LENGTH, CHICKEN_BONE_RADIUS),
 					knee(Vector(0,0,0), CHICKEN_BODY_COLOR, CHICKEN_BONE_RADIUS) {
-						phase_entered =  glutGet(GLUT_ELAPSED_TIME);
-						
+						phase_entered =  0;//glutGet(GLUT_ELAPSED_TIME);
+						cnt = 0;
 						bill.setRotate(0,0,-110);
 						crest[0] = Cone(head.p+Vector(0.04,.28,0), CHICKEN_CREST_COLOR, .1,.23);
 						crest[1] = Cone(head.p+Vector(-0.07,.25,0), CHICKEN_CREST_COLOR, .1,.23);
@@ -812,18 +824,55 @@ struct Csirguru: public Drawable {
 	
 	void drawItem() {
 		
-		long tn =  glutGet(GLUT_ELAPSED_TIME);
+		long tn =  (cnt++)*50;//glutGet(GLUT_ELAPSED_TIME);
 		float dt = (tn - phase_entered) / 1000.0;
 		
-		
+		float dx = V0 * JMP_ANGLE_COS * dt;
+			
 		switch (phase) {
 			case 0:
-			c_height = CHICKEN_HEIGHT_START - dt/10;
-			if (c_height < CHICKEN_HEIGHT_MIN) phase++;
+			c_height = CHICKEN_HEIGHT_START - V1 * dt + dt*dt/2 * A;
+			if (c_height > 2 * CHICKEN_BONE_LENGTH) {
+				c_height = 2 * CHICKEN_BONE_LENGTH;
+				phase = 1;
+				phase_entered = tn;
+				p0 = p;
+				dt = 0;
+			}
+				break;
+			case 1:
+			c_height = 2* CHICKEN_BONE_LENGTH;
+			setTranslate(p0 + Vector( dx * cos(rot.y * M_PI / 180) , V0 * JMP_ANGLE_SIN * dt - G / 2 * dt *dt , -dx * sin(rot.y * M_PI / 180)));
+			if (V0 * 0.8 * dt < G / 2 * dt *dt) {
+				setTranslate(Vector(p.x,p0.y,p.z));
+				phase = 2;
+				phase_entered = tn;
+			}
+			break;
+			case 2:
+			c_height = 2 * CHICKEN_BONE_LENGTH - V0 * dt + A / 2 * dt *dt;
+			if (c_height < CHICKEN_HEIGHT_START) phase++;
+			break;
+			case 3:
+			c_height = 2 * CHICKEN_BONE_LENGTH - V0 * dt + A / 2 * dt *dt;
+			if (c_height > CHICKEN_HEIGHT_START) {
+				c_height = CHICKEN_HEIGHT_START;
+				phase = 4;
+				phase_entered = tn;
+				rot0 = rot;
+			}
+			break;
+			case 4:
+			setRotate(rot0 + Vector(0,dt*90,0));
+			if (dt > 1) {
+				setRotate(rot0 + Vector(0,90,0));
+				phase = 0;
+				phase_entered = tn;
+			}
 			break;
 		}
 		
-		printf ("%f\n", c_height);
+		printf ("%d : %f\n", phase, c_height);
 		float angRad = asinf(c_height / 2 / CHICKEN_BONE_LENGTH );	
 		float legAngle = angRad / M_PI * 180.0;
 		toe.draw();
