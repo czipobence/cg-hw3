@@ -1093,7 +1093,11 @@ struct World {
 					}
 				}
 			}
+			if (firstTh == NULL) {
+				lastTh = NULL;
+			}
 		}
+		
 	}
 	
 	
