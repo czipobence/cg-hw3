@@ -898,14 +898,13 @@ struct ThrownDrawable {
 		p0 = offset + itm -> p;
 		r0 = itm -> rot;
 		v0 = Vector((rand()%10) / 5.0  -1, (rand()%5) / 5.0 + 4, (rand()%10) / 5.0 -1);
-		w0 = Vector((rand()%90) / 1.0, (rand()%90) / 1.0, (rand()%90) / 1.0);
+		w0 = Vector((rand()%180) / 1.0, (rand()%180) / 1.0, (rand()%180) / 1.0);
 		t_start = GLOBAL_TIME;
 	}
 	
 	void drawItem() {
 		
 		float dt = (GLOBAL_TIME- t_start) / 1000.0f;
-		dt = 0;
 		itm -> setTranslate(p0 + v0 * dt - Vector(0,G/2,0)*dt*dt);
 		itm -> setRotate(r0 + w0 * dt);
 		itm -> draw();
@@ -929,7 +928,7 @@ struct Camera {
 	Vector pos,dir,up, eye,right;
 	
 	
-	Camera(	Vector pos=Vector(0,1,2), 
+	Camera(	Vector pos=Vector(0,2,6), 
 			Vector dir=Vector(0,0,-1), 
 			Vector up=Vector(0,1,0)):
 			pos(pos), dir(dir), up(up) {
@@ -980,7 +979,7 @@ struct World {
 	ThrownDrawable* td;
 	
 	void init() {
-		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,0,0));
+		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,0,1));
 		firstTh = lastTh = NULL;
 		/*createCsirguru(Vector(0,0,1));
 		createCsirguru(Vector(1,0,1));
@@ -1016,6 +1015,29 @@ struct World {
 		addThr(new Cylinder(cs->csg->toe),pcs);
 		addThr(new Cylinder(cs->csg->foot),pcs);
 		addThr(new Cylinder(cs->csg->leg),pcs);
+		
+		CsirguruWrapper *ptr,*lem;
+		
+		if (cs == firstCsg) {
+			ptr = firstCsg;
+			firstCsg = firstCsg->next;
+			delete ptr;
+		} else {
+			lem = firstCsg;
+			ptr = firstCsg -> next;
+			while (ptr != NULL) {
+				if (ptr == cs) {
+					lem -> next = ptr -> next;
+					if (ptr == lastCsg) lastCsg = lem;
+					delete ptr;
+					ptr = NULL;
+				} else {
+					lem = ptr;
+					ptr = ptr -> next;
+				}
+			}
+		}
+		
 	}
 	
 	void addThr(Drawable* d, Vector offset = Vector()) {
@@ -1031,7 +1053,8 @@ struct World {
 	}
 	
 	void draw() {
-		firstCsg -> drawCsg();
+		if (firstCsg != NULL)
+			firstCsg -> drawCsg();
 		if (firstTh != NULL) {
 			firstTh -> drawItem();
 		
@@ -1040,6 +1063,9 @@ struct World {
 					ptr = firstTh -> next;
 					delete firstTh;
 					firstTh = ptr;
+					if (firstTh == NULL) {
+						lastTh = NULL;
+					}
 			}
 		
 			if (firstTh != NULL && firstTh -> next != NULL) {
@@ -1049,6 +1075,7 @@ struct World {
 				while (ptr != NULL) {
 					if (!(ptr -> aboveGround())) {
 						lem -> next = ptr -> next;
+						if (ptr == lastTh) lastTh = lem;
 						delete ptr;
 						ptr = lem -> next;
 					} else {
