@@ -987,6 +987,8 @@ struct World {
 		createCsirguru(Vector(1,0,0));
 		createCsirguru(Vector(0,0,2));*/
 		firstTh = lastTh = new ThrownDrawable(new Cone(Vector(0,1,- 2), CHICKEN_BODY_COLOR));
+		addThr(new ThrownDrawable(new Cylinder(Vector(0,1,- 2), CHICKEN_BILL_COLOR)));
+		addThr( new ThrownDrawable(new Cone(Vector(0,1,- 2), CHICKEN_LEG_COLOR)));
 	}
 	
 	void createCsirguru(Vector v) {
@@ -995,13 +997,18 @@ struct World {
 		lastCsg = uj;
 	}
 	
+	void addThr(ThrownDrawable * uj) {
+		lastTh -> next = uj;
+		lastTh = uj;
+	}
+	
 	void draw() {
 		firstCsg -> drawCsg();
 		if (firstTh != NULL) {
 			firstTh -> drawItem();
 		
 			ThrownDrawable* ptr, *lem; 
-			while (firstTh != NULL && ! firstTh -> aboveGround()) {
+			while (firstTh != NULL && !(firstTh -> aboveGround())) {
 					ptr = firstTh -> next;
 					delete firstTh;
 					firstTh = ptr;
@@ -1016,6 +1023,9 @@ struct World {
 						lem -> next = ptr -> next;
 						delete ptr;
 						ptr = lem -> next;
+					} else {
+						lem = ptr;
+						ptr = ptr -> next;
 					}
 				}
 			}
