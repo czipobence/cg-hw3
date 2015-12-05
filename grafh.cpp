@@ -229,7 +229,7 @@ struct BezierCurve : public ColoredDrawable {
     Vector cps[10];
     int num;
 
-	BezierCurve(Vector p = Vector(0,0,0), Color c=Color(0,1,0)): ColoredDrawable(p,c) {
+	BezierCurve(Vector p = Vector(0,0,0), Color c=Color(1,1,0)): ColoredDrawable(p,c) {
 		num = 0;
 	}
 
@@ -344,7 +344,7 @@ struct CatmullRom : ColoredDrawable {
 	
 	CatmullRom(): ColoredDrawable(Vector(0,0,0), Color(0,0,0)), n(0) {}
 	
-	CatmullRom(Vector*pts, int len=0, Vector p=Vector(0,0,0), Color c=Color(0,1,0)):
+	CatmullRom(Vector*pts, int len=0, Vector p=Vector(0,0,0), Color c=Color(1,0,0)):
 	 ColoredDrawable(p,c), n(len-1) {
 		for (int i = 0; i < n; i++) {
 			splines[i].p0 = pts[i];
@@ -438,6 +438,19 @@ struct UVDrawable : public ColoredDrawable {
 
 };
 
+void mkBz(BezierCurve* bzs, Vector also, Vector felso) {
+	float hlp = 0.8f;
+	Vector diff = felso - also;
+	float rad = diff.Length();
+	Vector tcp = felso + (diff) * hlp;  
+	bzs->addPoint(also);
+	bzs->addPoint(also.x,also.y,rad*hlp);
+	bzs->addPoint(tcp.x,tcp.y,rad*hlp);
+	bzs->addPoint(tcp.x,tcp.y,-rad*hlp);
+	bzs->addPoint(also.x,also.y,-rad*hlp);
+	bzs->finish();
+}
+
 struct CsirguruBodyHalo: public ColoredDrawable{
 	static const int cm_siz = 4;
 	CatmullRom cms[cm_siz];
@@ -445,53 +458,21 @@ struct CsirguruBodyHalo: public ColoredDrawable{
 	BezierCurve bzs[bz_siz];
 	
 	CsirguruBodyHalo(Vector p, Color c = Color(1,0,0)) : ColoredDrawable(p,c){
-		/*bzs[0].addPoint(Vector(-2.5,1,0));
-		bzs[0].addPoint(Vector(-2.5,1,0));
-		bzs[0].addPoint(Vector(-2.5,1,0));
-		bzs[0].addPoint(Vector(-2.5,1,0));
-		bzs[0].addPoint(Vector(-2.5,1,0));
-		
-		bzs[1].addPoint(Vector(-2.2,.1,0));
-		bzs[1].addPoint(Vector(-2.2,.1,0.7));
-		bzs[1].addPoint(Vector(-1.8,0.85,0));
-		bzs[1].addPoint(Vector(-2.2,.1,-0.7));
-		bzs[1].addPoint(Vector(-2.2,.1,0));
-		
-		bzs[2].addPoint(Vector(-0.75,-1.1,0));
-		bzs[2].addPoint(Vector(-0.75,-1.1,2.1));
-		bzs[2].addPoint(Vector(-1.1,0.85,0));
-		bzs[2].addPoint(Vector(-0.75,-1.1,-2.1));
-		bzs[2].addPoint(Vector(-0.75,-1.1,0));
-		
-		bzs[3].addPoint(Vector(1.2,-0.55,0));*/
 		
 		
+		mkBz(&(bzs[0]), Vector(-0.65,0.52,0), Vector(-0.648,0.522,0));
+		
+		mkBz(&(bzs[1]), Vector(-0.58,-0.13,0), Vector(-0.36,0.26,0));
 		
 		
-		Vector list1[6] = {Vector(-2.5,1,0), Vector(-2.2,.1,0), Vector(-0.75,-1.1,0), 
-			Vector(1.2,-0.55,0), Vector(1.9,0.85,0), Vector(2.2,1.6,0)};
-		cms[0] = CatmullRom(list1, 6, Vector(0,0,0), Color(0,0,1)); 
-		
-		Vector list2[6] = {Vector(-2.5,1,0.01), Vector(-2.2,.1,0.7), Vector(-0.75,-1.1,2.1), 
-			Vector(1.2,-0.55,2.8), Vector(1.9,0.85,1.4), Vector(2.2,1.6,0.3)};
-		cms[1] = CatmullRom(list2, 6, Vector(0,0,0), Color(0,0,1)); 
-		
-		Vector list3[6] = {Vector(-2.5,1.01,0), Vector(-1.8,0.85,0), Vector(-1.1,0.85,0), 
-			Vector(0.25,1.65,0), Vector(1,1.85,0), Vector(1.6,2,0)};
-		cms[2] = CatmullRom(list3, 6, Vector(0,0,0), Color(0,0,1)); 
-		
-		Vector list4[6] = {Vector(-2.5,1,-0.01), Vector(-2.2,.1,-0.7), Vector(-0.75,-1.1,-2.1), 
-			Vector(1.2,-0.55,-2.8), Vector(1.9,0.85,-1.4), Vector(2.2,1.6,-0.3)};
-		cms[3] = CatmullRom(list4, 6, Vector(0,0,0), Color(0,0,1)); 
+		mkBz(&(bzs[2]), Vector(0,-0.5,0), Vector(0,0.22,0));
 		
 		
-		for (int i = 0; i< bz_siz; i++) {
-			bzs[i].addPoint(list1[i]);
-			bzs[i].addPoint(list2[i]);
-			bzs[i].addPoint(list3[i]);
-			bzs[i].addPoint(list4[i]);
-			bzs[i].addPoint(list1[i]);
-		}
+		mkBz(&(bzs[3]), Vector(0.45,-0.31,0), Vector(0.2,0.28,0));
+		
+		mkBz(&(bzs[4]), Vector(0.58,0.14,0), Vector(0.34,0.34,0));
+		
+		mkBz(&(bzs[5]), Vector(0.68,0.34,0), Vector(0.5,0.46,0));
 		
 	}
 	
@@ -1027,10 +1008,10 @@ void onDisplay( ) {
 	//Csirguru g(Vector(0,1,0));
 	//g.draw();
 	
-	world.draw();
+	//world.draw();
 	
 	CsirguruBodyHalo h (Vector(0,1,0));
-	//h.draw();
+	h.draw();
 	
 	float shadow_mtx[4][4] = {1,                         0,       0,                       0,
 		                      -lightdir[0]/lightdir[1],  0,     -lightdir[2]/lightdir[1],  0,
@@ -1042,7 +1023,7 @@ void onDisplay( ) {
 	glDisable(GL_LIGHTING);
 	glColor3f(0, 0, 0);
 	
-	world.draw();
+	//world.draw();
 	
 	//f.draw();
 	//a.draw();
