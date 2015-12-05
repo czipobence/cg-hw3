@@ -44,7 +44,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <stdlib.h>
-
+#include <stdio.h>
 #if defined(__APPLE__)                                                                                                                                                                                                            
 #include <OpenGL/gl.h>                                                                                                                                                                                                            
 #include <OpenGL/glu.h>                                                                                                                                                                                                           
@@ -744,6 +744,8 @@ struct Csirguru: public Drawable {
 	static const float CHICKEN_BONE_RADIUS = 0.05;
 	
 	float legAngle;
+	int phase;
+	long phase_entered;
 	
 	/*static const int NUM_OF_PARTS = 8;
 	
@@ -759,13 +761,15 @@ struct Csirguru: public Drawable {
 	Cylinder leg;
 	
 	Csirguru (Vector middle): Drawable(middle), 
-					legAngle(LEG_ANGLE_INIT),
+					legAngle(LEG_ANGLE_INIT), phase(0),
 					body(Vector(0,.5,0), CHICKEN_BODY_COLOR),
 					head(body.p + Vector(0.55,0.38,0),.32,CHICKEN_BODY_COLOR),
 					bill(Vector(head.p + Vector(.1,-0.05,0)), CHICKEN_BILL_COLOR, 0.22, .4),
 					toe(Vector(0,CHICKEN_BONE_RADIUS,0), CHICKEN_LEG_COLOR, .5, CHICKEN_BONE_RADIUS),
 					foot(Vector(0,CHICKEN_BONE_RADIUS,0), CHICKEN_LEG_COLOR, .5,  CHICKEN_BONE_RADIUS),
 					leg(Vector(0,0,0), CHICKEN_LEG_COLOR, .5, CHICKEN_BONE_RADIUS) {
+						phase_entered =  glutGet(GLUT_ELAPSED_TIME);
+						
 						bill.setRotate(0,0,-110);
 						crest[0] = Cone(head.p+Vector(0.04,.28,0), CHICKEN_CREST_COLOR, .1,.23);
 						crest[1] = Cone(head.p+Vector(-0.07,.25,0), CHICKEN_CREST_COLOR, .1,.23);
@@ -799,6 +803,19 @@ struct Csirguru: public Drawable {
 					}
 	
 	void drawItem() {
+		
+		long tn =  glutGet(GLUT_ELAPSED_TIME);
+		float dt = (tn - phase_entered) / 1000.0;
+		
+		
+		printf("%f\n" ,dt);
+		
+		switch (phase) {
+			case 0:
+			legAngle = asinf(1.0 - dt/10) * 180 / M_PI;
+			break;
+		}
+		
 		float angRad = legAngle * M_PI / 180.0;
 		toe.draw();
 		
@@ -888,22 +905,8 @@ struct World {
 	CsirguruWrapper* firstCsg;
 	CsirguruWrapper* lastCsg;
 	
-	World() {
-		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,0,0));
-		
-		
-	/*createCsirguru(Vector(5,1,0));
-	createCsirguru(Vector(0,1,5));
-	createCsirguru(Vector(5,1,5));
-	createCsirguru(Vector(0,1,-5));
-	createCsirguru(Vector(5,1,-5));
-	createCsirguru(Vector(5,4,0));
-	createCsirguru(Vector(0,4,5));
-	createCsirguru(Vector(5,4,5));
-	createCsirguru(Vector(0,4,-5));
-	createCsirguru(Vector(5,4,-5));*/
-	
-		
+	void init() {
+		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,0,0));	
 	}
 	
 	void createCsirguru(Vector v) {
@@ -1010,7 +1013,8 @@ void onInitialization( ) {
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	createTexture();
-    
+	
+    world.init();
 }
 
 float lightdir[4] = {1,1,1,0};
