@@ -63,6 +63,7 @@
 // Innentol modosithatod...
 
 const float EPSILON = 0.001f;
+const float G = 3;
 
 //--------------------------------------------------------
 // 3D Vektor
@@ -700,21 +701,11 @@ struct Cylinder: public ColoredDrawable {
 	
 };
 
-
 struct Sphere: public ColoredDrawable {
 	float r;
 	
 	Sphere(Vector center = Vector(), Color c = Color(), float radius = 1):
 	ColoredDrawable(center,c), r(radius) {} 
-	
-	Vector getVal(float u, float v) {
-		return Vector (
-			(float)(r * cos(u) * sin (v)),
-			(float)(r * sin(u) * sin (v)),
-			(float)(r * cos(v))
-		);
-	}
-	
 	
 	void drawItem() {
 		for (int i = 0; i< 15;i++) {
@@ -750,7 +741,6 @@ struct Csirguru: public Drawable {
 	static const float CHICKEN_HEIGHT_START = 0.45;
 	static const float CHICKEN_BONE_RADIUS = 0.05;
 	static const float CHICKEN_BONE_LENGTH = 0.3;
-	static const float G = 3;
 	
 	const static float A = 3;
 	const static float V1 = 1;
@@ -895,6 +885,15 @@ struct Csirguru: public Drawable {
 
 };
 
+struct ThrownDrawable: public Drawable {
+	Vector p0, v0, r0, w0;
+	long t_start;
+	
+	void drawItem() {
+		
+	}
+};
+
 ////////////////////////////////////////////////////////////////////////
 
 struct Camera {
@@ -1024,8 +1023,8 @@ void createTexture() {
     }
 
     glBindTexture(GL_TEXTURE_2D, tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, 16, 16, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data);
 
 	//glBindTexture(GL_TEXTURE_2D, 0);
@@ -1081,7 +1080,7 @@ void onDisplay( ) {
 	setColor( GL_FRONT, GL_AMBIENT, GRAY);
 	//glMaterialfv( GL_FRONT, GL_SPECULAR, BLACK);	
 	
-	glClearColor(0.1f, 0.2f, 0.3f, 1.0f);		// torlesi szin beallitasa
+	glClearColor(0.53f, 0.808f, 0.922f, 1.0f);		// torlesi szin beallitasa
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // kepernyo torles
 
 	glEnable(GL_LIGHTING);
@@ -1089,20 +1088,20 @@ void onDisplay( ) {
 	
 	glEnable(GL_TEXTURE_2D); 
 	setColor( GL_FRONT, GL_DIFFUSE, WHITE);
-	for( int x = -10; x < 10; x++ ) {
-		for( int z = -10; z < 10; z++ ) {
+	for( int x = -4; x < 4; x++ ) {
+		for( int z = -4; z < 4; z++ ) {
 			glBindTexture(GL_TEXTURE_2D, tex); // Ezt semmiképpen se rakd a glBegin - glEnd blokk közé
 
 			glBegin(GL_QUADS);			
 				glNormal3f(0,1,0);
 				glTexCoord2f(0, 0);
-				glVertex3f(x * 1,     0, z * 1);
+				glVertex3f(x * 8,     0, z * 8);
 				glTexCoord2f(1, 0);
-				glVertex3f((x+1) * 1, 0, z * 1);
+				glVertex3f((x+1) * 8, 0, z * 8);
 				glTexCoord2f(1, 1);
-				glVertex3f((x+1) * 1, 0, (z+1) * 1);
+				glVertex3f((x+1) * 8, 0, (z+1) * 8);
 				glTexCoord2f(0, 1);
-				glVertex3f(x * 1,     0, (z+1) * 1);
+				glVertex3f(x * 8,     0, (z+1) * 8);
 			glEnd();
 		}
     }
