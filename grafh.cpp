@@ -857,48 +857,50 @@ World world;
 // TEX TÚRA
 ////////////////////////////////////////////////////////////////////////
 
+
+
 GLuint tex;
 
-void CreateTextures() {
-  glGenTextures(1,  &tex);
+void createTexture() {
+	glGenTextures(1,  &tex);
 
-  const char* ascii_textures = {
-    "....********...."
-    "....********...."
-    "....********...."
-    "....********...."
-    "****++++++++****"
-    "****++++++++****"
-    "****++++++++****"
-    "****++++++++****"
-    "****++++++++****"
-    "****++++++++****"
-    "****++++++++****"
-    "****++++++++****"
-    "....********...."
-    "....********...."
-    "....********...."
-    "....********...."
-  };
+	const char* ascii_textures = {
+		"....********...."
+		"....********...."
+		"....********...."
+		"....********...."
+		"****++++++++****"
+		"****++++++++****"
+		"****++++++++****"
+		"****++++++++****"
+		"****++++++++****"
+		"****++++++++****"
+		"****++++++++****"
+		"****++++++++****"
+		"....********...."
+		"....********...."
+		"....********...."
+		"....********...."
+	};
 
-  GLubyte texture_data[256][3];
+	GLubyte texture_data[256][3];
     for(int i = 0; i < 256; i++) {
-      switch(ascii_textures[i]) {
-        case '*':
-          for(int j = 0; j < 3; j++) {
-            texture_data[i][j] = 0;
-          }
-          break;
-        case '+':
-          for(int j = 0; j < 3; j++) {
-            texture_data[i][j] = 127;
-          }
-          break;
-        default:
-          for(int j = 0; j < 3; j++) {
-            texture_data[i][j] = 255;
-          }
-          break;
+		switch(ascii_textures[i]) {
+			case '*':
+				texture_data[i][0] = 0x30;
+				texture_data[i][1] = 0xC0;
+				texture_data[i][2] = 0x00;
+			break;
+			case '+':
+				texture_data[i][0] = 0x00;
+				texture_data[i][1] = 0xFF;
+				texture_data[i][2] = 0x00;
+			break;
+			default:
+				texture_data[i][0] = 0x30;
+				texture_data[i][1] = 0x90;
+				texture_data[i][2] = 0x30;
+			break;
       }
     }
 
@@ -907,7 +909,7 @@ void CreateTextures() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, 16, 16, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data);
 
-  glBindTexture(GL_TEXTURE_2D, 0);
+	//glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -938,7 +940,7 @@ void onInitialization( ) {
 	glEnable(GL_CULL_FACE);
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	CreateTextures();
+	createTexture();
     
 }
 
