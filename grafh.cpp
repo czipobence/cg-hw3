@@ -701,11 +701,11 @@ struct Cylinder: public ColoredDrawable {
 };
 
 
-struct Sphere: public UVDrawable {
+struct Sphere: public ColoredDrawable {
 	float r;
 	
 	Sphere(Vector center = Vector(), Color c = Color(), float radius = 1):
-	UVDrawable(center,c,0,2*M_PI,20,0,M_PI,10),r(radius) {} 
+	ColoredDrawable(center,c), r(radius) {} 
 	
 	Vector getVal(float u, float v) {
 		return Vector (
@@ -715,22 +715,28 @@ struct Sphere: public UVDrawable {
 		);
 	}
 	
-	Vector getNorm(float u, float v) {return (getVal(u,v)).norm();}
 	
-};
-
-struct Bone: public Drawable{
-	Cylinder b;
-	Sphere j;
-	
-	Bone(Vector p, int len) : Drawable(p), b(p), j(p) {}
-	
-	void draw() {
-		b.draw();
-		j.draw();
+	void drawItem() {
+		for (int i = 0; i< 15;i++) {
+			float u = i  * 2 * M_PI / 15.0;
+			float u_n = (i + 1) * 2* M_PI / 15.0;
+			glBegin(GL_TRIANGLE_STRIP);
+			for (int j = 0; j < 8; j++) {
+				float v = j * M_PI / 7;
+				
+				glNormal3f(cos(u) * sin(v), sin(u) * sin(v), cos(v));
+				glVertex3f(r*cos(u) * sin(v), r*sin(u) * sin(v), r*cos(v));
+				
+				glNormal3f(cos(u_n) * sin(v), sin(u_n) * sin(v), cos(v));
+				glVertex3f(r*cos(u_n) * sin(v), r*sin(u_n) * sin(v), r*cos(v));
+				
+			}
+			glEnd();
+		}
 	}
 	
 };
+
 
 
 const Color CHICKEN_CREST_COLOR (.9,0,0);
@@ -943,7 +949,11 @@ struct World {
 	CsirguruWrapper* lastCsg;
 	
 	void init() {
-		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,0,0));	
+		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,0,0));
+		createCsirguru(Vector(0,0,1));
+		createCsirguru(Vector(1,0,1));
+		createCsirguru(Vector(1,0,0));
+		createCsirguru(Vector(0,0,2));
 	}
 	
 	void createCsirguru(Vector v) {
@@ -1145,7 +1155,7 @@ void onDisplay( ) {
 	glDisable(GL_LIGHTING);
 	glColor3f(0, 0, 0);
 	
-	//world.draw();
+	world.draw();
 	
 	//f.draw();
 	//a.draw();
