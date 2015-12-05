@@ -743,24 +743,24 @@ struct Csirguru: public Drawable {
 	Cone crest[3];
 	
 	Csirguru (Vector middle): Drawable(middle), 
-					head(Vector(1.8,1.4,0),.7,CHICKEN_BODY_COLOR),
+					head(Vector(0.55,0.38,0),.32,CHICKEN_BODY_COLOR),
 					body(Vector(0,0,0), CHICKEN_BODY_COLOR),
-					bill(Vector(2.0,1.3,0.0), CHICKEN_BILL_COLOR, 0.4, 1.1) {
+					bill(Vector(head.p + Vector(.1,-0.05,0)), CHICKEN_BILL_COLOR, 0.22, .4) {
 						bill.setRotate(0,0,-110);
-						crest[0] = Cone(head.p+Vector(0,.6,0), CHICKEN_CREST_COLOR, .3,.7);
-						crest[1] = Cone(head.p+Vector(-.2,.5,0), CHICKEN_CREST_COLOR, .3,.7);
+						crest[0] = Cone(head.p+Vector(0.04,.28,0), CHICKEN_CREST_COLOR, .1,.23);
+						crest[1] = Cone(head.p+Vector(-0.07,.25,0), CHICKEN_CREST_COLOR, .1,.23);
 						crest[1].setRotate(0,0,20);
-						crest[2] = Cone(head.p+Vector(.2,.5,0), CHICKEN_CREST_COLOR, .3,.7);
+						crest[2] = Cone(head.p+Vector(.14,.25,0), CHICKEN_CREST_COLOR, .1,.23);
 						crest[2].setRotate(0,0,-20);
 						
 					}
 	
 	void drawItem() {
 		body.draw();
-		//head.draw();
-		//bill.draw();
+		head.draw();
+		bill.draw();
 		for (int i = 0; i < 3; i++) {
-			//crest[i].draw();
+			crest[i].draw();
 		}
 	}
 };
