@@ -863,18 +863,26 @@ void CreateTextures() {
   glGenTextures(1,  &tex);
 
   const char* ascii_textures = {
-    "........"
-    "...**..."
-    "....*..."
-    "....*..."
-    "....*..."
-    "....*..."
-    "...***.."
-    "........"
+    "....********...."
+    "....********...."
+    "....********...."
+    "....********...."
+    "****++++++++****"
+    "****++++++++****"
+    "****++++++++****"
+    "****++++++++****"
+    "****++++++++****"
+    "****++++++++****"
+    "****++++++++****"
+    "****++++++++****"
+    "....********...."
+    "....********...."
+    "....********...."
+    "....********...."
   };
 
-  GLubyte texture_data[64][3];
-    for(int i = 0; i < 64; i++) {
+  GLubyte texture_data[256][3];
+    for(int i = 0; i < 256; i++) {
       switch(ascii_textures[i]) {
         case '*':
           for(int j = 0; j < 3; j++) {
@@ -897,7 +905,7 @@ void CreateTextures() {
     glBindTexture(GL_TEXTURE_2D, tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, 8, 8, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, 16, 16, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data);
 
   glBindTexture(GL_TEXTURE_2D, 0);
 }
