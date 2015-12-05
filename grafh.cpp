@@ -840,6 +840,9 @@ struct Csirguru: public Drawable {
 				phase_entered = tn;
 				rot0 = rot;
 				turn_angle = rand() % 181 - 90;
+				if (p.Length() > 9) {
+					turn_angle = 180;
+				}
 			}
 			break;
 			case 4:
