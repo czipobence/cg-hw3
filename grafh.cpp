@@ -741,27 +741,25 @@ const Color CHICKEN_LEG_COLOR (1,1,0);
 
 struct Csirguru: public Drawable {
 	
-	static const float CHICKEN_HEIGHT_START = 0.5;
+	static const float CHICKEN_HEIGHT_START = 0.45;
 	static const float CHICKEN_BONE_RADIUS = 0.05;
 	static const float CHICKEN_BONE_LENGTH = 0.3;
 	static const float G = 3;
 	
-	const static float A = 2;
-	const static float V0 = 1.1265;
+	const static float A = 3;
 	const static float V1 = 1;
+	const static float V0 = 1.3784;
 	
-	static const float JMP_ANGLE_SIN = 0.8;
-	static const float JMP_ANGLE_COS = 0.6;
+	static const float JMP_ANGLE_SIN = 0.7071;
+	static const float JMP_ANGLE_COS = 0.7071;
 	
 	Vector p0,rot0;
 	
 	float c_height;
 	int phase;
 	long phase_entered;
+	float turn_angle;
 	
-	/*static const int NUM_OF_PARTS = 8;
-	
-	Drawable* parts[NUM_OF_PARTS];*/
 	
 	CsirguruBody body;
 	Sphere head;
@@ -801,30 +799,11 @@ struct Csirguru: public Drawable {
 						
 						toe.setRotate(Vector(0,0,-90));
 						
-						/*parts[0] = new CsirguruBody(Vector(0,0,0), CHICKEN_BODY_COLOR);
-						
-						parts[1] = new Sphere(Vector(0.55,0.38,0),.32,CHICKEN_BODY_COLOR);
-						
-						parts[2] = new Cone(Vector(head.p + Vector(.1,-0.05,0)), CHICKEN_BILL_COLOR, 0.22, .4);
-						parts[2] -> setRotate(0,0,-110);
-						
-						parts[3] = new Cone(head.p+Vector(0.04,.28,0), CHICKEN_CREST_COLOR, .1,.23);
-						
-						parts[4] = new Cone(head.p+Vector(-0.07,.25,0), CHICKEN_CREST_COLOR, .1,.23);
-						parts[4] -> setRotate(0,0,20);
-						
-						parts[5] = new Cone(head.p+Vector(.14,.25,0), CHICKEN_CREST_COLOR, .1,.23);
-						parts[5] -> setRotate(0,0,-20);
-						
-						
-						parts[6] = new Sphere(head.p + Vector(0.28,0.07,-0.12), 0.05, CHICKEN_EYE_COLOR);
-						parts[7] = new Sphere(head.p + Vector(0.28,0.07,0.12), 0.05, CHICKEN_EYE_COLOR);*/
-						
 					}
 	
 	void drawItem() {
 		
-		long tn =  (cnt++)*50;//glutGet(GLUT_ELAPSED_TIME);
+		long tn =  (cnt++)*100;//glutGet(GLUT_ELAPSED_TIME);
 		float dt = (tn - phase_entered) / 1000.0;
 		
 		float dx = V0 * JMP_ANGLE_COS * dt;
@@ -843,7 +822,7 @@ struct Csirguru: public Drawable {
 			case 1:
 			c_height = 2* CHICKEN_BONE_LENGTH;
 			setTranslate(p0 + Vector( dx * cos(rot.y * M_PI / 180) , V0 * JMP_ANGLE_SIN * dt - G / 2 * dt *dt , -dx * sin(rot.y * M_PI / 180)));
-			if (V0 * 0.8 * dt < G / 2 * dt *dt) {
+			if (V0 * 0.8 * dt < G / 2 * dt *dt + CHICKEN_BONE_RADIUS*0.5) {
 				setTranslate(Vector(p.x,p0.y,p.z));
 				phase = 2;
 				phase_entered = tn;
@@ -860,19 +839,18 @@ struct Csirguru: public Drawable {
 				phase = 4;
 				phase_entered = tn;
 				rot0 = rot;
+				turn_angle = rand() % 181 - 90;
 			}
 			break;
 			case 4:
-			setRotate(rot0 + Vector(0,dt*90,0));
+			setRotate(rot0 + Vector(0,dt*turn_angle,0));
 			if (dt > 1) {
-				setRotate(rot0 + Vector(0,90,0));
+				setRotate(rot0 + Vector(0,turn_angle,0));
 				phase = 0;
 				phase_entered = tn;
 			}
 			break;
 		}
-		
-		printf ("%d : %f\n", phase, c_height);
 		float angRad = asinf(c_height / 2 / CHICKEN_BONE_LENGTH );	
 		float legAngle = angRad / M_PI * 180.0;
 		toe.draw();
@@ -904,16 +882,8 @@ struct Csirguru: public Drawable {
 		eye[1].draw();
 		glPopMatrix();
 
-		/*for (int i = 0 ; i<NUM_OF_PARTS;i++) {
-			parts[i] -> draw();
-		}*/
 	}
-	
-	~Csirguru () {
-		/*for (int i = 0 ; i<NUM_OF_PARTS;i++) {
-			delete parts[i];
-		}*/
-	}
+
 };
 
 ////////////////////////////////////////////////////////////////////////
