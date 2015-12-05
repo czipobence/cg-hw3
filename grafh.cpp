@@ -135,10 +135,6 @@ const Color WHITE(1,1,1);
 const Color GRAY(.2,.2,.2);
 const Color BLACK(0,0,0);
 
-const Color CHICKEN_CREST_COLOR (.9,0,0);
-const Color CHICKEN_BODY_COLOR (.8,.8,.6);
-const Color CHICKEN_BILL_COLOR (.9,.7,.1);
-
 const int SCREEN_WIDTH = 600;	// alkalmazás ablak felbontása
 const int SCREEN_HEIGHT = 600;
 
@@ -707,7 +703,7 @@ struct Cylinder: public ColoredDrawable {
 struct Sphere: public UVDrawable {
 	float r;
 	
-	Sphere(Vector center, float radius = 1, Color c = Color()):
+	Sphere(Vector center = Vector(), float radius = 1, Color c = Color()):
 	UVDrawable(center,c,0,2*M_PI,20,0,M_PI,10),r(radius) {} 
 	
 	Vector getVal(float u, float v) {
@@ -735,12 +731,19 @@ struct Bone: public Drawable{
 	
 };
 
+
+const Color CHICKEN_CREST_COLOR (.9,0,0);
+const Color CHICKEN_BODY_COLOR (.8,.8,.6);
+const Color CHICKEN_BILL_COLOR (.9,.7,.1);
+const Color CHICKEN_EYE_COLOR = BLACK;
+
 struct Csirguru: public Drawable {
 	
 	Sphere head;
 	CsirguruBody body;
 	Cone bill;
 	Cone crest[3];
+	Sphere eye[2];
 	
 	Csirguru (Vector middle): Drawable(middle), 
 					head(Vector(0.55,0.38,0),.32,CHICKEN_BODY_COLOR),
@@ -752,7 +755,8 @@ struct Csirguru: public Drawable {
 						crest[1].setRotate(0,0,20);
 						crest[2] = Cone(head.p+Vector(.14,.25,0), CHICKEN_CREST_COLOR, .1,.23);
 						crest[2].setRotate(0,0,-20);
-						
+						eye[0] = Sphere(head.p + Vector(0.28,0.07,-0.12), 0.05, CHICKEN_EYE_COLOR);
+						eye[1] = Sphere(head.p + Vector(0.28,0.07,0.12), 0.05, CHICKEN_EYE_COLOR);
 					}
 	
 	void drawItem() {
@@ -762,6 +766,8 @@ struct Csirguru: public Drawable {
 		for (int i = 0; i < 3; i++) {
 			crest[i].draw();
 		}
+		eye[0].draw();
+		eye[1].draw();
 	}
 };
 
