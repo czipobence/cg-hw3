@@ -892,12 +892,12 @@ struct ThrownDrawable {
 	Drawable *itm;
 	ThrownDrawable* next;
 	
-	ThrownDrawable(Drawable* wt){
+	ThrownDrawable(Drawable* wt, Vector offset=Vector()){
 		next = NULL;
 		itm = wt;
-		p0 = itm -> p;
+		p0 = offset + itm -> p;
 		r0 = itm -> rot;
-		v0 = Vector((rand()%10) / 5.0  -1, 4, (rand()%10) / 5.0 -1);
+		v0 = Vector((rand()%10) / 5.0  -1, (rand()%5) / 5.0 + 4, (rand()%10) / 5.0 -1);
 		w0 = Vector((rand()%90) / 1.0, (rand()%90) / 1.0, (rand()%90) / 1.0);
 		t_start = GLOBAL_TIME;
 	}
@@ -905,7 +905,7 @@ struct ThrownDrawable {
 	void drawItem() {
 		
 		float dt = (GLOBAL_TIME- t_start) / 1000.0f;
-		
+		dt = 0;
 		itm -> setTranslate(p0 + v0 * dt - Vector(0,G/2,0)*dt*dt);
 		itm -> setRotate(r0 + w0 * dt);
 		itm -> draw();
@@ -929,7 +929,7 @@ struct Camera {
 	Vector pos,dir,up, eye,right;
 	
 	
-	Camera(	Vector pos=Vector(0,2,6), 
+	Camera(	Vector pos=Vector(0,1,2), 
 			Vector dir=Vector(0,0,-1), 
 			Vector up=Vector(0,1,0)):
 			pos(pos), dir(dir), up(up) {
@@ -986,9 +986,11 @@ struct World {
 		createCsirguru(Vector(1,0,1));
 		createCsirguru(Vector(1,0,0));
 		createCsirguru(Vector(0,0,2));*/
-		firstTh = lastTh = new ThrownDrawable(new Cone(Vector(0,1,- 2), CHICKEN_BODY_COLOR));
-		addThr(new ThrownDrawable(new Cylinder(Vector(0,1,- 2), CHICKEN_BILL_COLOR)));
-		addThr( new ThrownDrawable(new Cone(Vector(0,1,- 2), CHICKEN_LEG_COLOR)));
+		/*firstTh = lastTh = new ThrownDrawable(new Cone(Vector(0,1,- 2), CHICKEN_BODY_COLOR));
+		addThr(new Cylinder(Vector(0,1,- 2), CHICKEN_BILL_COLOR));
+		addThr(new Cone(Vector(0,1,- 2), CHICKEN_LEG_COLOR));*/
+		firstCsg -> drawCsg();
+		removeCsirguru(firstCsg);
 	}
 	
 	void createCsirguru(Vector v) {
@@ -997,7 +999,33 @@ struct World {
 		lastCsg = uj;
 	}
 	
-	void addThr(ThrownDrawable * uj) {
+	void removeCsirguru(CsirguruWrapper* cs) {
+		Vector pcs = cs-> csg -> p;
+		Vector offset = pcs + Vector(0,cs->csg->c_height + cs->csg->CHICKEN_BONE_RADIUS, 0);
+		addThr(new CsirguruBody(cs->csg->body),offset);
+		addThr(new Sphere(cs->csg->head),offset);
+		addThr(new Sphere(cs->csg->eye[0]),offset);
+		addThr(new Sphere(cs->csg->eye[1]),offset);
+		addThr(new Cone(cs->csg->bill),offset);
+		addThr(new Cone(cs->csg->crest[0]),offset);
+		addThr(new Cone(cs->csg->crest[1]),offset);
+		addThr(new Cone(cs->csg->crest[2]),offset);
+		addThr(new Sphere(cs->csg->knee),offset);
+		addThr(new Sphere(cs->csg->ankle),pcs);
+		addThr(new Sphere(cs->csg->knuckle),pcs);
+		addThr(new Cylinder(cs->csg->toe),pcs);
+		addThr(new Cylinder(cs->csg->foot),pcs);
+		addThr(new Cylinder(cs->csg->leg),pcs);
+	}
+	
+	void addThr(Drawable* d, Vector offset = Vector()) {
+		ThrownDrawable *uj = new ThrownDrawable(d,offset);
+		
+		if (lastTh == NULL) {
+			firstTh = lastTh = uj;
+			return;
+		}
+		
 		lastTh -> next = uj;
 		lastTh = uj;
 	}
@@ -1134,7 +1162,7 @@ float lightdir[4] = {1,1,1,0};
 
 // Rajzolas, ha az alkalmazas ablak ervenytelenne valik, akkor ez a fuggveny hivodik meg
 void onDisplay( ) {
-	GLOBAL_TIME = glutGet(GLUT_ELAPSED_TIME);
+	GLOBAL_TIME =glutGet(GLUT_ELAPSED_TIME);
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
