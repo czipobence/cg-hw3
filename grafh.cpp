@@ -703,7 +703,7 @@ struct Cylinder: public ColoredDrawable {
 struct Sphere: public UVDrawable {
 	float r;
 	
-	Sphere(Vector center = Vector(), float radius = 1, Color c = Color()):
+	Sphere(Vector center = Vector(), Color c = Color(), float radius = 1):
 	UVDrawable(center,c,0,2*M_PI,20,0,M_PI,10),r(radius) {} 
 	
 	Vector getVal(float u, float v) {
@@ -740,10 +740,12 @@ const Color CHICKEN_LEG_COLOR (1,1,0);
 
 struct Csirguru: public Drawable {
 	
-	static const float LEG_ANGLE_INIT = 30;
+	static const float CHICKEN_HEIGHT_START = 0.5;
+	static const float CHICKEN_HEIGHT_MIN = 0.3;
 	static const float CHICKEN_BONE_RADIUS = 0.05;
+	static const float CHICKEN_BONE_LENGTH = 0.3;
 	
-	float legAngle;
+	float c_height;
 	int phase;
 	long phase_entered;
 	
@@ -757,17 +759,23 @@ struct Csirguru: public Drawable {
 	Cone crest[3];
 	Sphere eye[2];
 	Cylinder toe;
+	Sphere knuckle;
 	Cylinder foot;
+	Sphere ankle;
 	Cylinder leg;
+	Sphere knee;
 	
 	Csirguru (Vector middle): Drawable(middle), 
-					legAngle(LEG_ANGLE_INIT), phase(0),
+					c_height(CHICKEN_HEIGHT_START), phase(0),
 					body(Vector(0,.5,0), CHICKEN_BODY_COLOR),
-					head(body.p + Vector(0.55,0.38,0),.32,CHICKEN_BODY_COLOR),
+					head(body.p + Vector(0.55,0.38,0),CHICKEN_BODY_COLOR, .32),
 					bill(Vector(head.p + Vector(.1,-0.05,0)), CHICKEN_BILL_COLOR, 0.22, .4),
-					toe(Vector(0,CHICKEN_BONE_RADIUS,0), CHICKEN_LEG_COLOR, .5, CHICKEN_BONE_RADIUS),
-					foot(Vector(0,CHICKEN_BONE_RADIUS,0), CHICKEN_LEG_COLOR, .5,  CHICKEN_BONE_RADIUS),
-					leg(Vector(0,0,0), CHICKEN_LEG_COLOR, .5, CHICKEN_BONE_RADIUS) {
+					toe(Vector(0,CHICKEN_BONE_RADIUS,0), CHICKEN_LEG_COLOR, CHICKEN_BONE_LENGTH, CHICKEN_BONE_RADIUS),
+					knuckle(Vector(0,CHICKEN_BONE_RADIUS,0), CHICKEN_LEG_COLOR, CHICKEN_BONE_RADIUS),
+					foot(Vector(0,CHICKEN_BONE_RADIUS,0), CHICKEN_LEG_COLOR, CHICKEN_BONE_LENGTH,  CHICKEN_BONE_RADIUS),
+					ankle(Vector(0,0,0), CHICKEN_LEG_COLOR, CHICKEN_BONE_RADIUS),
+					leg(Vector(0,0,0), CHICKEN_LEG_COLOR, CHICKEN_BONE_LENGTH, CHICKEN_BONE_RADIUS),
+					knee(Vector(0,0,0), CHICKEN_BODY_COLOR, CHICKEN_BONE_RADIUS) {
 						phase_entered =  glutGet(GLUT_ELAPSED_TIME);
 						
 						bill.setRotate(0,0,-110);
@@ -776,8 +784,8 @@ struct Csirguru: public Drawable {
 						crest[1].setRotate(0,0,20);
 						crest[2] = Cone(head.p+Vector(.14,.25,0), CHICKEN_CREST_COLOR, .1,.23);
 						crest[2].setRotate(0,0,-20);
-						eye[0] = Sphere(head.p + Vector(0.28,0.07,-0.12), 0.05, CHICKEN_EYE_COLOR);
-						eye[1] = Sphere(head.p + Vector(0.28,0.07,0.12), 0.05, CHICKEN_EYE_COLOR);
+						eye[0] = Sphere(head.p + Vector(0.28,0.07,-0.12), CHICKEN_EYE_COLOR, 0.05);
+						eye[1] = Sphere(head.p + Vector(0.28,0.07,0.12), CHICKEN_EYE_COLOR, 0.05);
 						
 						toe.setRotate(Vector(0,0,-90));
 						
@@ -808,27 +816,34 @@ struct Csirguru: public Drawable {
 		float dt = (tn - phase_entered) / 1000.0;
 		
 		
-		printf("%f\n" ,dt);
-		
 		switch (phase) {
 			case 0:
-			legAngle = asinf(1.0 - dt/10) * 180 / M_PI;
+			c_height = CHICKEN_HEIGHT_START - dt/10;
+			if (c_height < CHICKEN_HEIGHT_MIN) phase++;
 			break;
 		}
 		
-		float angRad = legAngle * M_PI / 180.0;
+		printf ("%f\n", c_height);
+		float angRad = asinf(c_height / 2 / CHICKEN_BONE_LENGTH );	
+		float legAngle = angRad / M_PI * 180.0;
 		toe.draw();
+		
+		knuckle.draw();
 		
 		foot.setRotate(Vector(0,0,(legAngle-90)));
 		foot.draw();
 		
+		ankle.setTranslate(Vector(CHICKEN_BONE_LENGTH*cos(angRad),CHICKEN_BONE_RADIUS+CHICKEN_BONE_LENGTH*sin(angRad),0));
+		ankle.draw();
 		
 		leg.setRotate(Vector(0,0,90-legAngle));
-		leg.setTranslate(Vector(0.5*cos(angRad),2*CHICKEN_BONE_RADIUS+0.5*sin(angRad),0));
+		leg.setTranslate(Vector(CHICKEN_BONE_LENGTH*cos(angRad),CHICKEN_BONE_RADIUS+CHICKEN_BONE_LENGTH*sin(angRad),0));
 		leg.draw();
 		
 		glPushMatrix();
-		glTranslatef(0,0.5 * 2* sin(angRad) + 2*CHICKEN_BONE_RADIUS, 0);
+		glTranslatef(0,CHICKEN_BONE_LENGTH * 2* sin(angRad) + CHICKEN_BONE_RADIUS, 0);
+		
+		knee.draw();
 		
 		body.draw();
 		head.draw();
