@@ -890,8 +890,10 @@ struct ThrownDrawable {
 	Vector p0, v0, r0, w0;
 	long t_start;
 	Drawable *itm;
+	ThrownDrawable* next;
 	
 	ThrownDrawable(Drawable* wt){
+		next = NULL;
 		itm = wt;
 		p0 = itm -> p;
 		r0 = itm -> rot;
@@ -906,7 +908,10 @@ struct ThrownDrawable {
 		
 		itm -> setTranslate(p0 + v0 * dt - Vector(0,G/2,0)*dt*dt);
 		itm -> setRotate(r0 + w0 * dt);
-		itm -> draw();		
+		itm -> draw();
+		
+		if (next != NULL) next -> drawItem();
+		
 	}
 	
 	bool aboveGround() {
@@ -970,15 +975,18 @@ struct World {
 	Camera cam;
 	CsirguruWrapper* firstCsg;
 	CsirguruWrapper* lastCsg;
+	ThrownDrawable* firstTh;
+	ThrownDrawable* lastTh;
 	ThrownDrawable* td;
 	
 	void init() {
 		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,0,0));
+		firstTh = lastTh = NULL;
 		/*createCsirguru(Vector(0,0,1));
 		createCsirguru(Vector(1,0,1));
 		createCsirguru(Vector(1,0,0));
 		createCsirguru(Vector(0,0,2));*/
-		td = new ThrownDrawable(new Cone(Vector(0,1,- 2), CHICKEN_BODY_COLOR));
+		firstTh = lastTh = new ThrownDrawable(new Cone(Vector(0,1,- 2), CHICKEN_BODY_COLOR));
 	}
 	
 	void createCsirguru(Vector v) {
@@ -989,8 +997,29 @@ struct World {
 	
 	void draw() {
 		firstCsg -> drawCsg();
-		if (td != NULL) { td -> drawItem();
-		if (!td -> aboveGround()) {delete td; td = NULL;}}
+		if (firstTh != NULL) {
+			firstTh -> drawItem();
+		
+			ThrownDrawable* ptr, *lem; 
+			while (firstTh != NULL && ! firstTh -> aboveGround()) {
+					ptr = firstTh -> next;
+					delete firstTh;
+					firstTh = ptr;
+			}
+		
+			if (firstTh != NULL && firstTh -> next != NULL) {
+				
+				ptr = firstTh -> next;
+				lem = firstTh;
+				while (ptr != NULL) {
+					if (!(ptr -> aboveGround())) {
+						lem -> next = ptr -> next;
+						delete ptr;
+						ptr = lem -> next;
+					}
+				}
+			}
+		}
 	}
 	
 	
