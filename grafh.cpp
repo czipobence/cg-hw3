@@ -990,12 +990,32 @@ struct World {
 		addThr(new Cone(Vector(0,1,- 2), CHICKEN_LEG_COLOR));*/
 		firstCsg -> drawCsg();
 		removeCsirguru(firstCsg);
+		createCsirguru(Vector(0,0,0));
+		removeCsirguru(firstCsg);
+		createCsirguru(Vector(0,0,0));
+		
 	}
 	
 	void createCsirguru(Vector v) {
 		CsirguruWrapper* uj = new CsirguruWrapper(v);
+		if (firstCsg == NULL) {
+			firstCsg = lastCsg = uj;
+			return;
+		}
 		lastCsg -> next = uj;
 		lastCsg = uj;
+	}
+	
+	void addThr(Drawable* d, Vector offset = Vector()) {
+		ThrownDrawable *uj = new ThrownDrawable(d,offset);
+		
+		if (lastTh == NULL) {
+			firstTh = lastTh = uj;
+			return;
+		}
+		
+		lastTh -> next = uj;
+		lastTh = uj;
 	}
 	
 	void removeCsirguru(CsirguruWrapper* cs) {
@@ -1037,19 +1057,8 @@ struct World {
 				}
 			}
 		}
+		if (firstCsg == NULL) lastCsg = NULL;
 		
-	}
-	
-	void addThr(Drawable* d, Vector offset = Vector()) {
-		ThrownDrawable *uj = new ThrownDrawable(d,offset);
-		
-		if (lastTh == NULL) {
-			firstTh = lastTh = uj;
-			return;
-		}
-		
-		lastTh -> next = uj;
-		lastTh = uj;
 	}
 	
 	void draw() {
