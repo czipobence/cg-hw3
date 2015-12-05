@@ -64,6 +64,7 @@
 
 const float EPSILON = 0.001f;
 const float G = 3;
+float GLOBAL_TIME = 0;
 
 //--------------------------------------------------------
 // 3D Vektor
@@ -782,7 +783,7 @@ struct Csirguru: public Drawable {
 					ankle(Vector(0,0,0), CHICKEN_LEG_COLOR, CHICKEN_BONE_RADIUS),
 					leg(Vector(0,0,0), CHICKEN_LEG_COLOR, CHICKEN_BONE_LENGTH, CHICKEN_BONE_RADIUS),
 					knee(Vector(0,0,0), CHICKEN_BODY_COLOR, CHICKEN_BONE_RADIUS) {
-						phase_entered =  0;//glutGet(GLUT_ELAPSED_TIME);
+						phase_entered =  0;//GLOBAL_TIME;
 						cnt = 0;
 						bill.setRotate(0,0,-110);
 						crest[0] = Cone(head.p+Vector(0.04,.28,0), CHICKEN_CREST_COLOR, .1,.23);
@@ -799,7 +800,7 @@ struct Csirguru: public Drawable {
 	
 	void drawItem() {
 		
-		long tn =  (cnt++)*100;//glutGet(GLUT_ELAPSED_TIME);
+		long tn =  (cnt++)*100;//GLOBAL_TIME;
 		float dt = (tn - phase_entered) / 1000.0;
 		
 		float dx = V0 * JMP_ANGLE_COS * dt;
@@ -896,12 +897,12 @@ struct ThrownDrawable {
 		r0 = itm -> rot;
 		v0 = Vector((rand()%10) / 5.0  -1, 4, (rand()%10) / 5.0 -1);
 		w0 = Vector((rand()%90) / 1.0, (rand()%90) / 1.0, (rand()%90) / 1.0);
-		t_start = glutGet(GLUT_ELAPSED_TIME);
+		t_start = GLOBAL_TIME;
 	}
 	
-	void drawItem(long time) {
+	void drawItem() {
 		
-		float dt = (time- t_start) / 1000.0f;
+		float dt = (GLOBAL_TIME- t_start) / 1000.0f;
 		
 		itm -> setTranslate(p0 + v0 * dt - Vector(0,G/2,0)*dt*dt);
 		itm -> setRotate(r0 + w0 * dt);
@@ -988,7 +989,7 @@ struct World {
 	
 	void draw() {
 		firstCsg -> drawCsg();
-		if (td != NULL) { td -> drawItem(glutGet(GLUT_ELAPSED_TIME));
+		if (td != NULL) { td -> drawItem();
 		if (!td -> aboveGround()) {delete td; td = NULL;}}
 	}
 	
@@ -1094,6 +1095,8 @@ float lightdir[4] = {1,1,1,0};
 
 // Rajzolas, ha az alkalmazas ablak ervenytelenne valik, akkor ez a fuggveny hivodik meg
 void onDisplay( ) {
+	GLOBAL_TIME = glutGet(GLUT_ELAPSED_TIME);
+	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(80, (float)SCREEN_WIDTH/(float)SCREEN_HEIGHT, 0.1, 100);
