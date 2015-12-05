@@ -251,6 +251,13 @@ struct BezierCurve : public ColoredDrawable {
 			num++;
 		}
 	}
+	void addPoint(float px, float py, float pz) {
+		addPoint(Vector(px,py,pz));
+	}
+	
+	void finish() {
+		addPoint(cps[0]);
+	}
 
 	Vector getVal(float t) {
 		Vector rr(0,0,0);
