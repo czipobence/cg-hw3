@@ -885,12 +885,35 @@ struct Csirguru: public Drawable {
 
 };
 
-struct ThrownDrawable: public Drawable {
+struct ThrownDrawable {
 	Vector p0, v0, r0, w0;
 	long t_start;
+	Drawable *itm;
 	
-	void drawItem() {
+	ThrownDrawable(Drawable* wt){
+		itm = wt;
+		p0 = itm -> p;
+		r0 = itm -> rot;
+		v0 = Vector((rand()%10) / 5.0  -1, 4, (rand()%10) / 5.0 -1);
+		w0 = Vector((rand()%90) / 1.0, (rand()%90) / 1.0, (rand()%90) / 1.0);
+		t_start = glutGet(GLUT_ELAPSED_TIME);
+	}
+	
+	void drawItem(long time) {
 		
+		float dt = (time- t_start) / 1000.0f;
+		
+		itm -> setTranslate(p0 + v0 * dt - Vector(0,G/2,0)*dt*dt);
+		itm -> setRotate(r0 + w0 * dt);
+		itm -> draw();		
+	}
+	
+	bool aboveGround() {
+		return itm -> p.y > 0;
+	}
+	
+	~ThrownDrawable() {
+		delete itm;
 	}
 };
 
@@ -900,7 +923,7 @@ struct Camera {
 	Vector pos,dir,up, eye,right;
 	
 	
-	Camera(	Vector pos=Vector(0,1,2), 
+	Camera(	Vector pos=Vector(0,2,6), 
 			Vector dir=Vector(0,0,-1), 
 			Vector up=Vector(0,1,0)):
 			pos(pos), dir(dir), up(up) {
@@ -946,13 +969,15 @@ struct World {
 	Camera cam;
 	CsirguruWrapper* firstCsg;
 	CsirguruWrapper* lastCsg;
+	ThrownDrawable* td;
 	
 	void init() {
 		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,0,0));
-		createCsirguru(Vector(0,0,1));
+		/*createCsirguru(Vector(0,0,1));
 		createCsirguru(Vector(1,0,1));
 		createCsirguru(Vector(1,0,0));
-		createCsirguru(Vector(0,0,2));
+		createCsirguru(Vector(0,0,2));*/
+		td = new ThrownDrawable(new Cone(Vector(0,1,- 2), CHICKEN_BODY_COLOR));
 	}
 	
 	void createCsirguru(Vector v) {
@@ -963,6 +988,8 @@ struct World {
 	
 	void draw() {
 		firstCsg -> drawCsg();
+		if (td != NULL) { td -> drawItem(glutGet(GLUT_ELAPSED_TIME));
+		if (!td -> aboveGround()) {delete td; td = NULL;}}
 	}
 	
 	
