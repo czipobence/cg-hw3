@@ -526,11 +526,24 @@ struct CsirguruBody: public UVDrawable{
 		
 		bzs[3].addPoint(Vector(1.2,-0.55,0));*/
 		
+				
+		mkBz(&(bzs[0]), Vector(-0.65,0.52,0), Vector(-0.648,0.522,0));
 		
+		mkBz(&(bzs[1]), Vector(-0.58,-0.13,0), Vector(-0.36,0.26,0));
+		
+		
+		mkBz(&(bzs[2]), Vector(0,-0.5,0), Vector(0,0.22,0));
+		
+		
+		mkBz(&(bzs[3]), Vector(0.45,-0.31,0), Vector(0.2,0.28,0));
+		
+		mkBz(&(bzs[4]), Vector(0.58,0.14,0), Vector(0.34,0.34,0));
+		
+		mkBz(&(bzs[5]), Vector(0.68,0.34,0), Vector(0.5,0.46,0));
 	
 		
 		
-		Vector list1[6] = {Vector(-2.5,1,0), Vector(-2.2,.1,0), Vector(-0.75,-1.1,0), 
+		/*Vector list1[6] = {Vector(-2.5,1,0), Vector(-2.2,.1,0), Vector(-0.75,-1.1,0), 
 			Vector(1.2,-0.55,0), Vector(1.9,0.85,0), Vector(2.2,1.6,0)};
 		cms[0] = CatmullRom(list1, 6, Vector(0,0,0), Color(0,0,1)); 
 		
@@ -553,7 +566,7 @@ struct CsirguruBody: public UVDrawable{
 			bzs[i].addPoint(list4[i]);
 			bzs[i].addPoint(list1[i]);
 		}
-		
+		*/
 	}
 	
 	Vector getVal(float u, float v) {
@@ -562,7 +575,6 @@ struct CsirguruBody: public UVDrawable{
 			list[j] = bzs[j].getVal(u);
 		}
 		return CatmullRom(list,bz_siz).getVal(v);
-		return Vector(0,0,0);
 	}
 	
 	Vector getNorm(float u, float v) {
@@ -577,8 +589,7 @@ struct CsirguruBody: public UVDrawable{
 			list[j] = bzs[j].getDer(u);
 		}
 		Vector tan2 = CatmullRom(list,bz_siz).getVal(v);
-		return tan1%tan2;
-		return Vector(0,0,0);
+		return (tan1%tan2).norm();
 	}
 	
 	
@@ -746,10 +757,10 @@ struct Csirguru: public Drawable {
 	
 	void drawItem() {
 		body.draw();
-		head.draw();
-		bill.draw();
+		//head.draw();
+		//bill.draw();
 		for (int i = 0; i < 3; i++) {
-			crest[i].draw();
+			//crest[i].draw();
 		}
 	}
 };
@@ -760,8 +771,8 @@ struct Camera {
 	Vector pos,dir,up, eye,right;
 	
 	
-	Camera(	Vector pos=Vector(2,8,8), 
-			Vector dir=Vector(0,-1,-1), 
+	Camera(	Vector pos=Vector(0,1,2), 
+			Vector dir=Vector(0,0,-1), 
 			Vector up=Vector(0,1,0)):
 			pos(pos), dir(dir), up(up) {
 				fit();
@@ -811,7 +822,7 @@ struct World {
 		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,1,0));
 		
 		
-	createCsirguru(Vector(5,1,0));
+	/*createCsirguru(Vector(5,1,0));
 	createCsirguru(Vector(0,1,5));
 	createCsirguru(Vector(5,1,5));
 	createCsirguru(Vector(0,1,-5));
@@ -820,7 +831,7 @@ struct World {
 	createCsirguru(Vector(0,4,5));
 	createCsirguru(Vector(5,4,5));
 	createCsirguru(Vector(0,4,-5));
-	createCsirguru(Vector(5,4,-5));
+	createCsirguru(Vector(5,4,-5));*/
 	
 		
 	}
@@ -1008,10 +1019,10 @@ void onDisplay( ) {
 	//Csirguru g(Vector(0,1,0));
 	//g.draw();
 	
-	//world.draw();
+	world.draw();
 	
 	CsirguruBodyHalo h (Vector(0,1,0));
-	h.draw();
+	//h.draw();
 	
 	float shadow_mtx[4][4] = {1,                         0,       0,                       0,
 		                      -lightdir[0]/lightdir[1],  0,     -lightdir[2]/lightdir[1],  0,
