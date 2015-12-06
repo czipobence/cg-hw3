@@ -407,7 +407,7 @@ struct CsirguruBody: public ColoredDrawable{
 		for (int i = 0; i<cm_siz-1; i++) {
 			glBegin(GL_TRIANGLE_STRIP);
 			for (int j = 0; j < 16; j++) {
-				float v = j * bz_siz / 15.0;
+				float v = j * (bz_siz-1) / 15.0;
 				
 				setNormal((cms[i].getDer(v) % (der[i].getVal(v))).norm() );
 				putVertex(cms[i].getVal(v));
