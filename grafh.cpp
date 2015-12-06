@@ -787,7 +787,7 @@ struct CsirguruWrapper {
 };
 
 struct Bomb {
-	static const float RANGE = 2.0f;
+	static const float RANGE = 1.3f;
 	Vector p0;
 	long started;
 	Sphere bomb;
@@ -818,7 +818,7 @@ struct World {
 	Bomb bomb;
 	long csgAdded;
 	int csgCount;
-	static const int CSG_COUNT_MAX = 5;
+	static const int CSG_COUNT_MAX = 15;
 	
 	void init() {
 		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,0,1));
