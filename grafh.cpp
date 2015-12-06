@@ -818,7 +818,7 @@ struct World {
 	Bomb bomb;
 	long csgAdded;
 	int csgCount;
-	static const int CSG_COUNT_MAX = 15;
+	static const int CSG_COUNT_MAX = 10;
 	
 	void init() {
 		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,0,1));
