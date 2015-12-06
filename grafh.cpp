@@ -360,7 +360,7 @@ void mkBz(BezierCurve* bzs, Vector also, Vector felso) {
 
 struct CsirguruBody: public ColoredDrawable{
 	static const int bz_siz = 6;
-	static const int cm_siz = 10;
+	static const int cm_siz = 15;
 	BezierCurve bzs[bz_siz];
 	CatmullRom cms[cm_siz];
 	CatmullRom der[cm_siz];
@@ -406,8 +406,8 @@ struct CsirguruBody: public ColoredDrawable{
 	void drawItem() {
 		for (int i = 0; i<cm_siz-1; i++) {
 			glBegin(GL_TRIANGLE_STRIP);
-			for (int j = 0; j < 20; j++) {
-				float v = j * bz_siz / 19.0;
+			for (int j = 0; j < 16; j++) {
+				float v = j * bz_siz / 15.0;
 				
 				setNormal((cms[i].getDer(v) % (der[i].getVal(v))).norm() );
 				putVertex(cms[i].getVal(v));
@@ -533,8 +533,8 @@ struct Sphere: public ColoredDrawable {
 			float u = i  * 2 * M_PI / 15.0;
 			float u_n = (i + 1) * 2* M_PI / 15.0;
 			glBegin(GL_TRIANGLE_STRIP);
-			for (int j = 0; j < 8; j++) {
-				float v = j * M_PI / 7;
+			for (int j = 0; j < 10; j++) {
+				float v = j * M_PI / 9;
 				
 				glNormal3f(cos(u) * sin(v), sin(u) * sin(v), cos(v));
 				glVertex3f(r*cos(u) * sin(v), r*sin(u) * sin(v), r*cos(v));
