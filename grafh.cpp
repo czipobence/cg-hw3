@@ -344,44 +344,6 @@ struct CatmullRom {
 	 
 };
 
-struct UVDrawable : public ColoredDrawable {
-	float uMin,uMax,du,vMin,vMax,dv;
-	
-	UVDrawable(	Vector _p, Color _c = Color(0,0,0),
-				float uMin=0, float uMax = 2*M_PI, int nu = 30,
-				float vMin=0, float vMax = 1*M_PI, int nv = 30):
-				ColoredDrawable(_p,_c),uMin(uMin),uMax(uMax),vMin(vMin),vMax(vMax) {
-					du = (uMax - uMin) / (float)nu;
-					dv = (vMax - vMin) / (float)nv;
-				}
-
-	virtual Vector getVal(float u, float v) = 0;
-	virtual Vector getNorm(float u, float v) = 0;
-	
-
-	void putPoint(float u, float v) {
-		setNormal(getNorm(u,v));
-		putVertex(getVal(u,v));		
-	}
-
-	void drawItem (){
-        glBegin(GL_QUADS);
-		
-		for (float u = uMin; u < (uMax-du) + EPSILON ;u += du) {
-			for (float v = vMin; v < (vMax-du)+EPSILON; v+= dv) {
-				putPoint(u,v);
-				putPoint(u+du,v);
-				putPoint(u+du,v+dv);
-				putPoint(u,v+dv);
-			}
-		}
-		
-		glEnd();
-	}
-	
-	virtual ~UVDrawable(){}
-
-};
 
 void mkBz(BezierCurve* bzs, Vector also, Vector felso) {
 	float hlp = 0.8f;
@@ -1108,7 +1070,6 @@ void onInitialization( ) {
 
 float lightdir[4] = {1,1,1,0};
 
-// Rajzolas, ha az alkalmazas ablak ervenytelenne valik, akkor ez a fuggveny hivodik meg
 void onDisplay( ) {
 	
 	glMatrixMode(GL_PROJECTION);
@@ -1123,8 +1084,8 @@ void onDisplay( ) {
 	
 	setColor( GL_FRONT, GL_AMBIENT, GRAY);
 	
-	glClearColor(0.53f, 0.808f, 0.922f, 1.0f);		// torlesi szin beallitasa
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // kepernyo torles
+	glClearColor(0.53f, 0.808f, 0.922f, 1.0f);	
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
@@ -1133,7 +1094,7 @@ void onDisplay( ) {
 	setColor( GL_FRONT, GL_DIFFUSE, WHITE);
 	for( int x = -4; x < 4; x++ ) {
 		for( int z = -4; z < 4; z++ ) {
-			glBindTexture(GL_TEXTURE_2D, tex); // Ezt semmiképpen se rakd a glBegin - glEnd blokk közé
+			glBindTexture(GL_TEXTURE_2D, tex);
 
 			glBegin(GL_QUADS);			
 				glNormal3f(0,1,0);
@@ -1152,13 +1113,6 @@ void onDisplay( ) {
     glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
 	
-
-	
-	//CsirguruBody f(Vector(-2,2,0), Color(1,0,0));
-	//f.draw();
-	
-	//Csirguru g(Vector(0,1,0));
-	//g.draw();
 	
 	world.draw();
 	
