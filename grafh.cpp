@@ -553,7 +553,7 @@ struct Sphere: public ColoredDrawable {
 
 
 const Color CHICKEN_CREST_COLOR (.9,0,0);
-const Color CHICKEN_BODY_COLOR (.8,.8,.6);
+Color CHICKEN_BODY_COLOR (.9,.9,.6);
 const Color CHICKEN_BILL_COLOR (.9,.7,.1);
 const Color CHICKEN_EYE_COLOR = BLACK;
 const Color CHICKEN_LEG_COLOR (1,1,0);
@@ -614,7 +614,7 @@ struct Csirguru: public Drawable {
 						eye[1] = Sphere(head.p + Vector(0.28,0.07,0.12), CHICKEN_EYE_COLOR, 0.05);
 						
 						toe.setRotate(Vector(0,0,-90));
-						
+						CHICKEN_BODY_COLOR = Color((rand() % 256) / 255.0,(rand() % 256) / 255.0,(rand() % 256) / 255.0);
 					}
 	
 	void drawItem() {
@@ -638,7 +638,7 @@ struct Csirguru: public Drawable {
 			case 1:
 			c_height = 2* CHICKEN_BONE_LENGTH;
 			setTranslate(p0 + Vector( dx * cos(rot.y * M_PI / 180) , V0 * JMP_ANGLE_SIN * dt - G / 2 * dt *dt , -dx * sin(rot.y * M_PI / 180)));
-			if (V0 * 0.8 * dt < G / 2 * dt *dt) {
+			if (dt > V0 * JMP_ANGLE_SIN / G && V0 * JMP_ANGLE_SIN * dt < G / 2 * dt *dt) {
 				setTranslate(Vector(p.x,p0.y,p.z));
 				phase = 2;
 				phase_entered = tn;
@@ -818,7 +818,7 @@ struct World {
 	Bomb bomb;
 	long csgAdded;
 	int csgCount;
-	static const int CSG_COUNT_MAX = 10;
+	static const int CSG_COUNT_MAX = 100;
 	
 	void init() {
 		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,0,1));
