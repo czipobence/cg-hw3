@@ -63,7 +63,7 @@
 // Innentol modosithatod...
 
 const float EPSILON = 0.001f;
-const float G = 3;
+const float G = 6;
 float GLOBAL_TIME = 0;
 
 //--------------------------------------------------------
@@ -743,9 +743,9 @@ struct Csirguru: public Drawable {
 	static const float CHICKEN_BONE_RADIUS = 0.05;
 	static const float CHICKEN_BONE_LENGTH = 0.3;
 	
-	const static float A = 3;
-	const static float V1 = 1;
-	const static float V0 = 1.3784;
+	const static float A = 6;
+	const static float V1 = 1.5;
+	const static float V0 = 2.0125;
 	
 	static const float JMP_ANGLE_SIN = 0.7071;
 	static const float JMP_ANGLE_COS = 0.7071;
@@ -770,7 +770,6 @@ struct Csirguru: public Drawable {
 	Cylinder leg;
 	Sphere knee;
 	
-	int cnt;
 	
 	Csirguru (Vector middle): Drawable(middle), 
 					c_height(CHICKEN_HEIGHT_START), phase(0),
@@ -783,8 +782,7 @@ struct Csirguru: public Drawable {
 					ankle(Vector(0,0,0), CHICKEN_LEG_COLOR, CHICKEN_BONE_RADIUS),
 					leg(Vector(0,0,0), CHICKEN_LEG_COLOR, CHICKEN_BONE_LENGTH, CHICKEN_BONE_RADIUS),
 					knee(Vector(0,0,0), CHICKEN_BODY_COLOR, CHICKEN_BONE_RADIUS) {
-						phase_entered =  0;//GLOBAL_TIME;
-						cnt = 0;
+						phase_entered =  GLOBAL_TIME;
 						bill.setRotate(0,0,-110);
 						crest[0] = Cone(head.p+Vector(0.04,.28,0), CHICKEN_CREST_COLOR, .1,.23);
 						crest[1] = Cone(head.p+Vector(-0.07,.25,0), CHICKEN_CREST_COLOR, .1,.23);
@@ -800,7 +798,7 @@ struct Csirguru: public Drawable {
 	
 	void drawItem() {
 		
-		long tn =  (cnt++)*100;//GLOBAL_TIME;
+		long tn = GLOBAL_TIME;
 		float dt = (tn - phase_entered) / 1000.0;
 		
 		float dx = V0 * JMP_ANGLE_COS * dt;
@@ -819,7 +817,7 @@ struct Csirguru: public Drawable {
 			case 1:
 			c_height = 2* CHICKEN_BONE_LENGTH;
 			setTranslate(p0 + Vector( dx * cos(rot.y * M_PI / 180) , V0 * JMP_ANGLE_SIN * dt - G / 2 * dt *dt , -dx * sin(rot.y * M_PI / 180)));
-			if (V0 * 0.8 * dt < G / 2 * dt *dt + CHICKEN_BONE_RADIUS*0.5) {
+			if (V0 * 0.8 * dt < G / 2 * dt *dt) {
 				setTranslate(Vector(p.x,p0.y,p.z));
 				phase = 2;
 				phase_entered = tn;
