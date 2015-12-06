@@ -637,7 +637,7 @@ struct Csirguru: public Drawable {
 			case 1:
 			c_height = 2* CHICKEN_BONE_LENGTH;
 			setTranslate(p0 + Vector( dx * cos(rot.y * M_PI / 180) , V0 * JMP_ANGLE_SIN * dt - G / 2 * dt *dt , -dx * sin(rot.y * M_PI / 180)));
-			if (dt > V0 * JMP_ANGLE_SIN / G && V0 * JMP_ANGLE_SIN * dt < G / 2 * dt *dt) {
+			if (dt > V0 * JMP_ANGLE_SIN / G && V0 * JMP_ANGLE_SIN * dt < G / 2 * dt *dt + CHICKEN_BONE_RADIUS/2) {
 				setTranslate(Vector(p.x,p0.y,p.z));
 				phase = 2;
 				phase_entered = tn;
