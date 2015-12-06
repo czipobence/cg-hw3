@@ -137,11 +137,11 @@ const Color WHITE(1,1,1);
 const Color GRAY(.2,.2,.2);
 const Color BLACK(0,0,0);
 
-const int SCREEN_WIDTH = 600;	// alkalmazás ablak felbontása
+const int SCREEN_WIDTH = 600;	
 const int SCREEN_HEIGHT = 600;
 
 
-Color image[SCREEN_WIDTH*SCREEN_HEIGHT];	// egy alkalmazás ablaknyi kép
+Color image[SCREEN_WIDTH*SCREEN_HEIGHT];
 
 void putVertex(const Vector& v) {
   glVertex3f(v.x, v.y, v.z);
@@ -216,23 +216,21 @@ struct ColoredDrawable: public Drawable {
 	void setProperties() {
 		setColor(GL_FRONT,GL_AMBIENT, kd*.3);
         setColor(GL_FRONT,GL_DIFFUSE, kd);
-        //glMaterialfv(GL_FRONT,GL_SPECULAR, ks);
-        //glMaterialf (GL_FRONT,GL_SHININESS, 50);
 	}
 	
 	virtual ~ ColoredDrawable() {}
 	
 };
 
-struct BezierCurve : public ColoredDrawable {
+struct BezierCurve {
     Vector cps[10];
     int num;
 
-	BezierCurve(Vector p = Vector(0,0,0), Color c=Color(1,1,0)): ColoredDrawable(p,c) {
+	BezierCurve() {
 		num = 0;
 	}
 
-	BezierCurve(Vector * points, int n,Vector p=Vector(0,0,0), Color c=Color(0,1,0)): ColoredDrawable(p,c) {
+	BezierCurve(Vector * points, int n) {
 		num = n;
 		for (int i = 0; i <n; i++) cps[i] = points[i];
 	}
@@ -273,33 +271,6 @@ struct BezierCurve : public ColoredDrawable {
       	return rr;
 	}
    
-	void drawItem() {
-	
-		//glEnable(GL_COLOR_MATERIAL);
-		//glColor3f(kd.r, kd.g, kd.b);
-		
-		glBegin(GL_LINE_STRIP);
-		
-		for (float t = 0; t < 1; t+= 0.01) {
-			putVertex(getVal(t));
-		}
-		
-		glEnd();
-		
-		/*glBegin(GL_LINE_STRIP);
-		
-		for (int i = 0; i<num;i++) {
-			glVertex3f(cps[i]);
-		}
-		
-		glEnd();*/
-		
-		
-		//glDisable(GL_COLOR_MATERIAL);   
-	}
-   
-   
-   
 };
 
 struct Hermite {
@@ -337,14 +308,13 @@ struct Hermite {
 	
 };
 
-struct CatmullRom : ColoredDrawable {
+struct CatmullRom {
 	Hermite splines[10];
 	int n;
 	
-	CatmullRom(): ColoredDrawable(Vector(0,0,0), Color(0,0,0)), n(0) {}
+	CatmullRom():n(0) {}
 	
-	CatmullRom(Vector*pts, int len=0, Vector p=Vector(0,0,0), Color c=Color(1,0,0)):
-	 ColoredDrawable(p,c), n(len-1) {
+	CatmullRom(Vector*pts, int len=0): n(len-1) {
 		for (int i = 0; i < n; i++) {
 			splines[i].p0 = pts[i];
 			splines[i].p1 = pts[i+1];
@@ -370,31 +340,7 @@ struct CatmullRom : ColoredDrawable {
 		return splines[(int)(floor(t))].getDerived(t);
 	}
 	
-	void drawItem() {
 	
-		//glEnable(GL_COLOR_MATERIAL);
-		//glColor3f(kd.r, kd.g, kd.b);
-		
-		glBegin(GL_LINE_STRIP);
-		
-		for (float t = 0; t < n; t+= 0.01) {
-			putVertex(getVal(t));
-		}
-		
-		glEnd();
-		
-		/*glBegin(GL_LINE_STRIP);
-		
-		for (int i = 0; i<n;i++) {
-			glVertex3f(splines[i].p0);
-		}
-		glVertex3f(splines[n-1].p1);
-		
-		glEnd();
-		*/
-		
-		//glDisable(GL_COLOR_MATERIAL);   
-	}
 	 
 };
 
@@ -450,172 +396,6 @@ void mkBz(BezierCurve* bzs, Vector also, Vector felso) {
 	bzs->finish();
 }
 
-struct CsirguruBodyHalo: public ColoredDrawable{
-	static const int cm_siz = 4;
-	CatmullRom cms[cm_siz];
-	static const int bz_siz = 6;
-	BezierCurve bzs[bz_siz];
-	
-	CsirguruBodyHalo(Vector p, Color c = Color(1,0,0)) : ColoredDrawable(p,c){
-		
-		
-		mkBz(&(bzs[0]), Vector(-0.65,0.52,0), Vector(-0.648,0.522,0));
-		
-		mkBz(&(bzs[1]), Vector(-0.58,-0.13,0), Vector(-0.36,0.26,0));
-		
-		
-		mkBz(&(bzs[2]), Vector(0,-0.5,0), Vector(0,0.22,0));
-		
-		
-		mkBz(&(bzs[3]), Vector(0.45,-0.31,0), Vector(0.2,0.28,0));
-		
-		mkBz(&(bzs[4]), Vector(0.58,0.14,0), Vector(0.34,0.34,0));
-		
-		mkBz(&(bzs[5]), Vector(0.68,0.34,0), Vector(0.5,0.46,0));
-		
-	}
-	
-	void drawItem() {
-		//for (int i = 0; i< cm_siz; i++) cms[i].draw();
-		
-		
-		
-		for (int i = 0; i< bz_siz; i++) {
-			bzs[i].draw();
-		}
-		
-		for (float i = 0; i<1.0f; i += 0.1f) {
-			Vector list[bz_siz];
-			for (int j = 0; j<bz_siz; j++) {
-				list[j] = bzs[j].getVal(i);
-			}
-			CatmullRom(list,bz_siz).draw();
-		}
-		
-	}
-	
-	
-};
-
-/*struct CsirguruBody: public UVDrawable{
-	static const int cm_siz = 4;
-	CatmullRom cms[cm_siz];
-	static const int bz_siz = 6;
-	BezierCurve bzs[bz_siz];
-	
-	CsirguruBody(Vector p, Color c = Color(1,0,0)) : 
-		UVDrawable(p,c, 0, 1, 20, 0, bz_siz-2,20){
-	*/	/*bzs[0].addPoint(Vector(-2.5,1,0));
-		bzs[0].addPoint(Vector(-2.5,1,0));
-		bzs[0].addPoint(Vector(-2.5,1,0));
-		bzs[0].addPoint(Vector(-2.5,1,0));
-		bzs[0].addPoint(Vector(-2.5,1,0));
-		
-		bzs[1].addPoint(Vector(-2.2,.1,0));
-		bzs[1].addPoint(Vector(-2.2,.1,0.7));
-		bzs[1].addPoint(Vector(-1.8,0.85,0));
-		bzs[1].addPoint(Vector(-2.2,.1,-0.7));
-		bzs[1].addPoint(Vector(-2.2,.1,0));
-		
-		bzs[2].addPoint(Vector(-0.75,-1.1,0));
-		bzs[2].addPoint(Vector(-0.75,-1.1,2.1));
-		bzs[2].addPoint(Vector(-1.1,0.85,0));
-		bzs[2].addPoint(Vector(-0.75,-1.1,-2.1));
-		bzs[2].addPoint(Vector(-0.75,-1.1,0));
-		
-		bzs[3].addPoint(Vector(1.2,-0.55,0));*/
-		
-				
-	/*	mkBz(&(bzs[0]), Vector(-0.65,0.52,0), Vector(-0.648,0.522,0));
-		
-		mkBz(&(bzs[1]), Vector(-0.58,-0.13,0), Vector(-0.36,0.26,0));
-		
-		
-		mkBz(&(bzs[2]), Vector(0,-0.5,0), Vector(0,0.22,0));
-		
-		
-		mkBz(&(bzs[3]), Vector(0.45,-0.31,0), Vector(0.2,0.28,0));
-		
-		mkBz(&(bzs[4]), Vector(0.58,0.14,0), Vector(0.34,0.34,0));
-		
-		mkBz(&(bzs[5]), Vector(0.68,0.34,0), Vector(0.5,0.46,0));
-	
-	*/	
-		
-		/*Vector list1[6] = {Vector(-2.5,1,0), Vector(-2.2,.1,0), Vector(-0.75,-1.1,0), 
-			Vector(1.2,-0.55,0), Vector(1.9,0.85,0), Vector(2.2,1.6,0)};
-		cms[0] = CatmullRom(list1, 6, Vector(0,0,0), Color(0,0,1)); 
-		
-		Vector list2[6] = {Vector(-2.5,1,0.01), Vector(-2.2,.1,0.7), Vector(-0.75,-1.1,2.1), 
-			Vector(1.2,-0.55,2.8), Vector(1.9,0.85,1.4), Vector(2.2,1.6,0.3)};
-		cms[1] = CatmullRom(list2, 6, Vector(0,0,0), Color(0,0,1)); 
-		
-		Vector list3[6] = {Vector(-2.5,1.01,0), Vector(-1.8,0.85,0), Vector(-1.1,0.85,0), 
-			Vector(0.25,1.65,0), Vector(1,1.85,0), Vector(1.6,2,0)};
-		cms[2] = CatmullRom(list3, 6, Vector(0,0,0), Color(0,0,1)); 
-		
-		Vector list4[6] = {Vector(-2.5,1,-0.01), Vector(-2.2,.1,-0.7), Vector(-0.75,-1.1,-2.1), 
-			Vector(1.2,-0.55,-2.8), Vector(1.9,0.85,-1.4), Vector(2.2,1.6,-0.3)};
-		cms[3] = CatmullRom(list4, 6, Vector(0,0,0), Color(0,0,1)); 
-		
-		for (int i = 0; i< bz_siz; i++) {
-			bzs[i].addPoint(list1[i]);
-			bzs[i].addPoint(list2[i]);
-			bzs[i].addPoint(list3[i]);
-			bzs[i].addPoint(list4[i]);
-			bzs[i].addPoint(list1[i]);
-		}
-		*/
-	/*}
-	
-	Vector getVal(float u, float v) {
-		Vector list[bz_siz];
-		for (int j = 0; j<bz_siz; j++) {
-			list[j] = bzs[j].getVal(u);
-		}
-		return CatmullRom(list,bz_siz).getVal(v);
-	}
-	
-	Vector getNorm(float u, float v) {
-		Vector list[bz_siz];
-		for (int j = 0; j<bz_siz; j++) {
-			list[j] = bzs[j].getVal(u);
-		}
-		Vector tan1 = CatmullRom(list,bz_siz).getDer(v);
-		
-		
-		for (int j = 0; j<bz_siz; j++) {
-			list[j] = bzs[j].getDer(u);
-		}
-		Vector tan2 = CatmullRom(list,bz_siz).getVal(v);
-		return (tan1%tan2).norm();
-	}
-	
-	*/
-	
-	
-	/*void drawItem() {
-		//for (int i = 0; i< cm_siz; i++) cms[i].draw();
-		
-		
-		
-		for (int i = 0; i< bz_siz; i++) {
-			bzs[i].draw();
-		}
-		
-		for (float i = 0; i<1.0f; i += 0.1f) {
-			Vector list[bz_siz];
-			for (int j = 0; j<bz_siz; j++) {
-				list[j] = bzs[j].getVal(i);
-			}
-			CatmullRom(list,bz_siz).draw();
-		}
-		
-	}*/
-	
-/*	
-};
-*/
 struct CsirguruBody: public ColoredDrawable{
 	static const int bz_siz = 6;
 	static const int cm_siz = 10;
@@ -1382,8 +1162,6 @@ void onDisplay( ) {
 	
 	world.draw();
 	
-	CsirguruBodyHalo h (Vector(0,1,0));
-	//h.draw();
 	
 	float shadow_mtx[4][4] = {1,                         0,       0,                       0,
 		                      -lightdir[0]/lightdir[1],  0,     -lightdir[2]/lightdir[1],  0,
