@@ -976,7 +976,7 @@ struct Bomb {
 	
 	Bomb(Vector p = Vector()) : p0(p), started(0), bomb(p0, GRAY, .3) {}
 	
-	void start() {started = GLOBAL_TIME;}
+	void start() {if (!started) started = GLOBAL_TIME;}
 	
 	void draw() {
 		if (started) {
@@ -984,6 +984,9 @@ struct Bomb {
 			bomb.setTranslate(p0 - Vector(0,G/2,0) * dt*dt);
 		}
 		bomb.draw();
+	}
+	void resetPos() {
+		bomb.setTranslate(p0);
 	}
 	
 };
@@ -1076,6 +1079,7 @@ struct World {
 	void explodeBomb(Vector pos) {
 		bomb.started = 0;
 		bomb.p0 = cam.pos + Vector(cam.dir.x,0,cam.dir.y) * 15;
+		bomb.resetPos();
 		if (firstCsg == NULL) return;
 		
 		if (firstCsg -> next == NULL) {
@@ -1097,7 +1101,6 @@ struct World {
 	}
 	
 	void draw() {
-		if (!bomb.started)	bomb.start();
 		bomb.draw();
 		if (bomb.bomb.p.y < 0.1) explodeBomb(bomb.bomb.p);
 		if (firstCsg != NULL)
@@ -1319,7 +1322,10 @@ void onKeyboard(unsigned char key, int x, int y) {
     if (key == 'w') glutPostRedisplay( ); //MOVE UP
     if (key == 'd') glutPostRedisplay( ); //MOVE RIGHT
     if (key == 'y') glutPostRedisplay( ); //MOVE DOWN
-    if (key == ' ') glutPostRedisplay( ); //THROW BOMB
+    if (key == ' ') {
+		world.bomb.start();
+		glutPostRedisplay( );
+	} //THROW BOMB
     
    float UNIT = .5;
 	if (key == 'a') {
@@ -1387,7 +1393,7 @@ void onMouseMotion(int x, int y)
 
 // `Idle' esemenykezelo, jelzi, hogy az ido telik, az Idle esemenyek frekvenciajara csak a 0 a garantalt minimalis ertek
 void onIdle( ) {
-
+	glutPostRedisplay( );
 }
 
 // ...Idaig modosithatod
