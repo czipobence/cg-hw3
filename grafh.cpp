@@ -743,9 +743,9 @@ struct Csirguru: public Drawable {
 	static const float CHICKEN_BONE_RADIUS = 0.05;
 	static const float CHICKEN_BONE_LENGTH = 0.3;
 	
-	const static float A = 6;
-	const static float V1 = 1.5;
-	const static float V0 = 2.0125;
+	const static float A = 9;
+	const static float V1 = 2.6832;
+	const static float V0 = 3;
 	
 	static const float JMP_ANGLE_SIN = 0.7071;
 	static const float JMP_ANGLE_COS = 0.7071;
@@ -953,6 +953,7 @@ struct CsirguruWrapper {
 	
 	CsirguruWrapper(Vector pos = Vector(0,0,0)) {
 		csg = new Csirguru(Vector(pos));
+		csg -> rot = Vector(0,rand() % 360,0);
 		next = NULL;
 	}
 	
@@ -999,6 +1000,9 @@ struct World {
 	ThrownDrawable* lastTh;
 	ThrownDrawable* td;
 	Bomb bomb;
+	long csgAdded;
+	int csgCount;
+	static const int CSG_COUNT_MAX = 5;
 	
 	void init() {
 		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,0,1));
@@ -1009,9 +1013,13 @@ struct World {
 		removeCsirguru(firstCsg);
 		createCsirguru(Vector(0,0,0));
 		bomb = Bomb(cam.pos + Vector(cam.dir.x,0,cam.dir.y) * 15);
+		csgAdded = 0;
+		csgCount = 1;
 	}
 	
 	void createCsirguru(Vector v) {
+		csgCount++;
+		csgAdded = GLOBAL_TIME;
 		CsirguruWrapper* uj = new CsirguruWrapper(v);
 		if (firstCsg == NULL) {
 			firstCsg = lastCsg = uj;
@@ -1019,6 +1027,11 @@ struct World {
 		}
 		lastCsg -> next = uj;
 		lastCsg = uj;
+	}
+	
+	void addCsgUnderBomb() {
+		if (csgCount < CSG_COUNT_MAX)
+		createCsirguru(Vector(bomb.p0.x,0,bomb.p0.z));
 	}
 	
 	void addThr(Drawable* d, Vector offset = Vector()) {
@@ -1052,7 +1065,7 @@ struct World {
 		addThr(new Cylinder(cs->csg->leg),pcs);
 		
 		CsirguruWrapper *ptr,*lem;
-		
+		csgCount--;
 		if (cs == firstCsg) {
 			ptr = firstCsg;
 			firstCsg = firstCsg->next;
@@ -1090,7 +1103,7 @@ struct World {
 		CsirguruWrapper *ptr = firstCsg-> next;
 		CsirguruWrapper *lem = firstCsg;
 		while (ptr != NULL) {
-			if ((firstCsg -> csg -> p - pos).Length() < bomb.RANGE) {
+			if ((ptr -> csg -> p - pos).Length() < bomb.RANGE) {
 				ptr = ptr -> next;
 				removeCsirguru(lem->next);
 			} else {
@@ -1243,7 +1256,6 @@ float lightdir[4] = {1,1,1,0};
 
 // Rajzolas, ha az alkalmazas ablak ervenytelenne valik, akkor ez a fuggveny hivodik meg
 void onDisplay( ) {
-	GLOBAL_TIME =glutGet(GLUT_ELAPSED_TIME);
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -1393,6 +1405,8 @@ void onMouseMotion(int x, int y)
 
 // `Idle' esemenykezelo, jelzi, hogy az ido telik, az Idle esemenyek frekvenciajara csak a 0 a garantalt minimalis ertek
 void onIdle( ) {
+	GLOBAL_TIME =glutGet(GLUT_ELAPSED_TIME);
+	if (GLOBAL_TIME > world.csgAdded + 1000) world.addCsgUnderBomb();
 	glutPostRedisplay( );
 }
 
