@@ -1007,10 +1007,6 @@ struct World {
 		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,0,1));
 		firstTh = lastTh = NULL;
 		firstCsg -> drawCsg();
-		removeCsirguru(firstCsg);
-		createCsirguru(Vector(0,0,0));
-		removeCsirguru(firstCsg);
-		createCsirguru(Vector(0,0,0));
 		bomb = Bomb(cam.pos + Vector(cam.dir.x,0,cam.dir.y) * 15);
 		csgAdded = 0;
 		csgCount = 1;
@@ -1333,24 +1329,25 @@ void onKeyboard(unsigned char key, int x, int y) {
 		world.bomb.start();
 		glutPostRedisplay( );
 	}
-	float UNIT = .5;
-	if (key == 'a') {
-		world.cam.pos = world.cam.pos - Vector(UNIT,0,0);
-		glutPostRedisplay( );
+	if (!world.bomb.started) {
+		float UNIT = .5;
+		if (key == 'a') {
+			world.cam.pos = world.cam.pos - Vector(UNIT,0,0);
+			glutPostRedisplay( );
+		}
+		if (key == 'd') {
+			world.cam.pos = world.cam.pos + Vector(UNIT,0,0);
+			glutPostRedisplay( );
+		}
+		if (key == 'w') {
+			world.cam.pos = world.cam.pos - Vector(0,0,UNIT);
+			glutPostRedisplay( );
+		}
+		if (key == 'y') {
+			world.cam.pos = world.cam.pos + Vector(0,0,UNIT);
+			glutPostRedisplay( );
+		}
 	}
-	if (key == 'd') {
-		world.cam.pos = world.cam.pos + Vector(UNIT,0,0);
-		glutPostRedisplay( );
-	}
-	if (key == 'w') {
-		world.cam.pos = world.cam.pos - Vector(0,0,UNIT);
-		glutPostRedisplay( );
-	}
-	if (key == 'y') {
-		world.cam.pos = world.cam.pos + Vector(0,0,UNIT);
-		glutPostRedisplay( );
-	}
-	
 	world.cam.fit();
 }
 
