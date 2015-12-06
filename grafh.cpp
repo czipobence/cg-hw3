@@ -44,7 +44,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <stdlib.h>
-#include <stdio.h>
+
 #if defined(__APPLE__)                                                                                                                                                                                                            
 #include <OpenGL/gl.h>                                                                                                                                                                                                            
 #include <OpenGL/glu.h>                                                                                                                                                                                                           
@@ -189,25 +189,6 @@ struct Drawable {
 	virtual ~Drawable() {};
 };
 
-struct Plain : public Drawable {
-	Vector n;
-	Plain (const Vector& _p, const Vector & _n) : Drawable(_p), n(_n) {}
-	void drawItem() {
-		glBegin( GL_QUADS );
-		for( int x = -20; x < 20; x++ ) {
-			for( int z = -20; z < 20; z++ ) {
-				setColor( GL_FRONT, GL_DIFFUSE, (x ^ z) & 1 ? WHITE : GRAY);
-				glVertex3f(x * 1,     0, z * 1);
-				glVertex3f((x+1) * 1, 0, z * 1);
-				glVertex3f((x+1) * 1, 0, (z+1) * 1);
-				glVertex3f(x * 1,     0, (z+1) * 1);
-			}
-		}
-		glEnd( );	
-			
-	}
-};
-
 struct ColoredDrawable: public Drawable {
 	Color kd;
 	
@@ -333,11 +314,15 @@ struct CatmullRom {
 	
 	
 	Vector getVal(float t) {
-		return splines[(int)(floor(t))].getVal(t);
+		int spline = (int)(floor(t));
+		if (spline > n-1) spline = n-1;
+		return splines[spline].getVal(t);
 	}
 	
 	Vector getDer(float t) {
-		return splines[(int)(floor(t))].getDerived(t);
+		int spline = (int)(floor(t));
+		if (spline > n-1) spline = n-1;
+		return splines[spline].getDerived(t);
 	}
 	
 	
