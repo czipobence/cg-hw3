@@ -553,7 +553,7 @@ struct Sphere: public ColoredDrawable {
 
 
 const Color CHICKEN_CREST_COLOR (.9,0,0);
-Color CHICKEN_BODY_COLOR (.9,.9,.6);
+const Color CHICKEN_BODY_COLOR (.9,.9,.6);
 const Color CHICKEN_BILL_COLOR (.9,.7,.1);
 const Color CHICKEN_EYE_COLOR = BLACK;
 const Color CHICKEN_LEG_COLOR (1,1,0);
@@ -614,7 +614,6 @@ struct Csirguru: public Drawable {
 						eye[1] = Sphere(head.p + Vector(0.28,0.07,0.12), CHICKEN_EYE_COLOR, 0.05);
 						
 						toe.setRotate(Vector(0,0,-90));
-						CHICKEN_BODY_COLOR = Color((rand() % 256) / 255.0,(rand() % 256) / 255.0,(rand() % 256) / 255.0);
 					}
 	
 	void drawItem() {
