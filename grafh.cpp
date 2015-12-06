@@ -983,11 +983,10 @@ struct Bomb {
 		if (started) {
 			float dt = (GLOBAL_TIME - started)/1000.0f;
 			bomb.setTranslate(p0 - Vector(0,G/2,0) * dt*dt);
+		} else {
+			bomb.setTranslate(p0);
 		}
 		bomb.draw();
-	}
-	void resetPos() {
-		bomb.setTranslate(p0);
 	}
 	
 };
@@ -1092,7 +1091,6 @@ struct World {
 	void explodeBomb(Vector pos) {
 		bomb.started = 0;
 		bomb.p0 = cam.pos + Vector(cam.dir.x,0,cam.dir.y) * 15;
-		bomb.resetPos();
 		if (firstCsg == NULL) return;
 		
 		if (firstCsg -> next == NULL) {
@@ -1114,6 +1112,7 @@ struct World {
 	}
 	
 	void draw() {
+		if (!bomb.started) bomb.p0 = cam.pos + Vector(cam.dir.x,0,cam.dir.y) * 15;
 		bomb.draw();
 		if (bomb.bomb.p.y < 0.1) explodeBomb(bomb.bomb.p);
 		if (firstCsg != NULL)
@@ -1330,56 +1329,25 @@ void onDisplay( ) {
 
 // Billentyuzet esemenyeket lekezelo fuggveny (lenyomas)
 void onKeyboard(unsigned char key, int x, int y) {
-	if (key == 'a') glutPostRedisplay( ); //MOVE LEFT 
-    if (key == 'w') glutPostRedisplay( ); //MOVE UP
-    if (key == 'd') glutPostRedisplay( ); //MOVE RIGHT
-    if (key == 'y') glutPostRedisplay( ); //MOVE DOWN
-    if (key == ' ') {
+	if (key == ' ') {
 		world.bomb.start();
 		glutPostRedisplay( );
-	} //THROW BOMB
-    
-   float UNIT = .5;
+	}
+	float UNIT = .5;
 	if (key == 'a') {
-		world.cam.pos = world.cam.pos - world.cam.right * UNIT;
+		world.cam.pos = world.cam.pos - Vector(UNIT,0,0);
 		glutPostRedisplay( );
 	}
 	if (key == 'd') {
-		world.cam.pos = world.cam.pos + world.cam.right * UNIT;
+		world.cam.pos = world.cam.pos + Vector(UNIT,0,0);
 		glutPostRedisplay( );
 	}
 	if (key == 'w') {
-		world.cam.pos = world.cam.pos + world.cam.dir * UNIT;
+		world.cam.pos = world.cam.pos - Vector(0,0,UNIT);
 		glutPostRedisplay( );
 	}
-	if (key == 's') {
-		world.cam.pos = world.cam.pos - world.cam.dir * UNIT;
-		glutPostRedisplay( );
-	}
-	if (key == 'r') {
-		world.cam.pos = world.cam.pos + world.cam.up * UNIT;
-		glutPostRedisplay( );
-	}
-	if (key == 'f') {
-		world.cam.pos = world.cam.pos - world.cam.up * UNIT;
-		glutPostRedisplay( );
-	}
-	if (key == '6') {
-		world.cam.dir = (world.cam.dir % world.cam.up + world.cam.dir * 3) / 4; 
-		glutPostRedisplay( );
-	}
-	if (key == '4') {
-		world.cam.dir = (world.cam.up % world.cam.dir + world.cam.dir * 3) / 4; 
-		glutPostRedisplay( );
-	}
-	if (key == '8') {
-		world.cam.dir = (world.cam.right % world.cam.dir + world.cam.dir*3) / 4; 
-		world.cam.up = world.cam.right % world.cam.dir;
-		glutPostRedisplay( );
-	}
-	if (key == '2') {
-		world.cam.dir = (world.cam.dir % world.cam.right + world.cam.dir*3) / 4; 
-		world.cam.up = world.cam.right % world.cam.dir;
+	if (key == 'y') {
+		world.cam.pos = world.cam.pos + Vector(0,0,UNIT);
 		glutPostRedisplay( );
 	}
 	
