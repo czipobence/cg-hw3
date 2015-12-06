@@ -689,8 +689,6 @@ struct Csirguru: public Drawable {
 		glTranslatef(0,CHICKEN_BONE_LENGTH * 2* sin(angRad) + CHICKEN_BONE_RADIUS, 0);
 		
 		knee.draw();
-		
-		body.draw();
 		head.draw();
 		bill.draw();
 		for (int i = 0; i < 3; i++) {
@@ -698,6 +696,9 @@ struct Csirguru: public Drawable {
 		}
 		eye[0].draw();
 		eye[1].draw();
+		
+		
+		body.draw();
 		glPopMatrix();
 
 	}
@@ -1094,7 +1095,7 @@ void onDisplay( ) {
 	float shadow_mtx[4][4] = {1,                         0,       0,                       0,
 		                      -lightdir[0]/lightdir[1],  0,     -lightdir[2]/lightdir[1],  0,
 							   0,                        0,      1,                        0,
-							   0,                    0.001,      0,                        1};
+							   0,                    0.01,      0,                        1};
 
 
 	glMultMatrixf( &shadow_mtx[0][0] );
