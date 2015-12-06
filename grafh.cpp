@@ -214,7 +214,7 @@ struct ColoredDrawable: public Drawable {
 	ColoredDrawable(Vector p, Color c) : Drawable(p), kd(c) {}
 	
 	void setProperties() {
-		setColor(GL_FRONT,GL_AMBIENT, kd*.3);
+		setColor(GL_FRONT,GL_AMBIENT, kd*.5);
         setColor(GL_FRONT,GL_DIFFUSE, kd);
 	}
 	
@@ -741,8 +741,6 @@ struct ThrownDrawable {
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
-
 struct Camera {
 	Vector pos,dir,up, eye,right;
 	
@@ -765,8 +763,6 @@ struct Camera {
 		gluLookAt(pos.x,pos.y,pos.z,eye.x,eye.y,eye.z,up.x,up.y,up.z);
 	}
 };
-
-////////////////////////////////////////////////////////////////////////
 
 struct CsirguruWrapper {
 	Csirguru* csg;
@@ -981,45 +977,28 @@ struct World {
 
 World world;
 
-////////////////////////////////////////////////////////////////////////
-// TEX TÚRA
-////////////////////////////////////////////////////////////////////////
-
-
-
-GLuint tex;
+GLuint chequeredTex;
 
 void createTexture() {
-	glGenTextures(1,  &tex);
+	glGenTextures(1,  &chequeredTex);
 
 	const char* ascii_textures = {
-		"....********...."
-		"....********...."
-		"....********...."
-		"....********...."
-		"****++++++++****"
-		"****++++++++****"
-		"****++++++++****"
-		"****++++++++****"
-		"****++++++++****"
-		"****++++++++****"
-		"****++++++++****"
-		"****++++++++****"
-		"....********...."
-		"....********...."
-		"....********...."
-		"....********...."
+		"BBAA"
+		"BBAA"
+		"AACC"
+		"AACC"
+		
 	};
 
-	GLubyte texture_data[256][3];
-    for(int i = 0; i < 256; i++) {
+	GLubyte texture_data[16][3];
+    for(int i = 0; i < 16; i++) {
 		switch(ascii_textures[i]) {
-			case '*':
+			case 'A':
 				texture_data[i][0] = 0x30;
 				texture_data[i][1] = 0xC0;
 				texture_data[i][2] = 0x00;
 			break;
-			case '+':
+			case 'B':
 				texture_data[i][0] = 0x00;
 				texture_data[i][1] = 0xFF;
 				texture_data[i][2] = 0x00;
@@ -1032,32 +1011,23 @@ void createTexture() {
       }
     }
 
-    glBindTexture(GL_TEXTURE_2D, tex);
+    glBindTexture(GL_TEXTURE_2D, chequeredTex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, 16, 16, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, 4, 4, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data);
 
-	//glBindTexture(GL_TEXTURE_2D, 0);
 }
-
-/////////////////////////////////////////////////////////////////////////
-// END
-/////////////////////////////////////////////////////////////////////////
-
-
-
-
 
 void onInitialization( ) { 
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 	
 	glEnable(GL_DEPTH_TEST);
 	
-	float Ia[4] = {0.1, 0.1, 0.1, 1}, Id[4] = {1.0, 1.0, 1.0, 1}, Is[4] = {2, 2, 2, 1};
+	float Ia[4] = {0.2, 0.2, 0.2, 1};
+	float Id[4] = {1.0, 1.0, 1.0, 1};
 	
 	glLightfv(GL_LIGHT0, GL_AMBIENT, Ia);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, Id);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, Is);
 	glEnable(GL_LIGHT0);
 
 	
@@ -1099,7 +1069,7 @@ void onDisplay( ) {
 	setColor( GL_FRONT, GL_DIFFUSE, WHITE);
 	for( int x = -4; x < 4; x++ ) {
 		for( int z = -4; z < 4; z++ ) {
-			glBindTexture(GL_TEXTURE_2D, tex);
+			glBindTexture(GL_TEXTURE_2D, chequeredTex);
 
 			glBegin(GL_QUADS);			
 				glNormal3f(0,1,0);
@@ -1121,7 +1091,7 @@ void onDisplay( ) {
 	
 	world.draw();
 	
-	
+	//http://cg.iit.bme.hu/portal/oktatott-targyak/szamitogepes-grafika-es-kepfeldolgozas/animacio
 	float shadow_mtx[4][4] = {1,                         0,       0,                       0,
 		                      -lightdir[0]/lightdir[1],  0,     -lightdir[2]/lightdir[1],  0,
 							   0,                        0,      1,                        0,
@@ -1134,12 +1104,10 @@ void onDisplay( ) {
 	
 	world.draw();
 
-	glutSwapBuffers();     				// Buffercsere: rajzolas vege
+	glutSwapBuffers();
 
 }
 
-
-// Billentyuzet esemenyeket lekezelo fuggveny (lenyomas)
 void onKeyboard(unsigned char key, int x, int y) {
 	if (key == ' ') {
 		world.bomb.start();
@@ -1167,24 +1135,20 @@ void onKeyboard(unsigned char key, int x, int y) {
 	world.cam.fit();
 }
 
-// Billentyuzet esemenyeket lekezelo fuggveny (felengedes)
 void onKeyboardUp(unsigned char key, int x, int y) {
 
 }
 
-// Eger esemenyeket lekezelo fuggveny
 void onMouse(int button, int state, int x, int y) {
-    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)   // A GLUT_LEFT_BUTTON / GLUT_RIGHT_BUTTON illetve GLUT_DOWN / GLUT_UP
-		glutPostRedisplay( ); 						 // Ilyenkor rajzold ujra a kepet
+    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+		glutPostRedisplay( ); 				
 }
 
-// Eger mozgast lekezelo fuggveny
 void onMouseMotion(int x, int y)
 {
 
 }
 
-// `Idle' esemenykezelo, jelzi, hogy az ido telik, az Idle esemenyek frekvenciajara csak a 0 a garantalt minimalis ertek
 void onIdle( ) {
 	GLOBAL_TIME =glutGet(GLUT_ELAPSED_TIME);
 	if (GLOBAL_TIME > world.csgAdded + 1000) world.addCsgUnderBomb();
