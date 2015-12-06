@@ -910,6 +910,11 @@ struct World {
 		bomb.p0 = cam.pos + Vector(cam.dir.x,0,cam.dir.y) * 15;
 		if (firstCsg == NULL) return;
 		
+		while (firstCsg != NULL && (firstCsg -> csg -> p - pos).Length() < bomb.RANGE) {
+			removeCsirguru(firstCsg);
+		}
+		if (firstCsg == NULL) return;
+		
 		if (firstCsg -> next == NULL) {
 			if ((firstCsg -> csg -> p - pos).Length() < bomb.RANGE) removeCsirguru(firstCsg);
 			return;
