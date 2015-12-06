@@ -928,8 +928,8 @@ struct Camera {
 	Vector pos,dir,up, eye,right;
 	
 	
-	Camera(	Vector pos=Vector(0,2,6), 
-			Vector dir=Vector(0,0,-1), 
+	Camera(	Vector pos=Vector(0,5,10), 
+			Vector dir=Vector(0,-0.5,-1), 
 			Vector up=Vector(0,1,0)):
 			pos(pos), dir(dir), up(up) {
 				fit();
@@ -970,6 +970,26 @@ struct CsirguruWrapper {
 	
 };
 
+struct Bomb {
+	static const float RANGE = 2.0f;
+	Vector p0;
+	long started;
+	Sphere bomb;
+	
+	Bomb(Vector p = Vector()) : p0(p), started(0), bomb(p0, GRAY, .3) {}
+	
+	void start() {started = GLOBAL_TIME;}
+	
+	void draw() {
+		if (started) {
+			float dt = (GLOBAL_TIME - started)/1000.0f;
+			bomb.setTranslate(p0 - Vector(0,G/2,0) * dt*dt);
+		}
+		bomb.draw();
+	}
+	
+};
+
 struct World {
 	Camera cam;
 	CsirguruWrapper* firstCsg;
@@ -977,23 +997,17 @@ struct World {
 	ThrownDrawable* firstTh;
 	ThrownDrawable* lastTh;
 	ThrownDrawable* td;
+	Bomb bomb;
 	
 	void init() {
 		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,0,1));
 		firstTh = lastTh = NULL;
-		/*createCsirguru(Vector(0,0,1));
-		createCsirguru(Vector(1,0,1));
-		createCsirguru(Vector(1,0,0));
-		createCsirguru(Vector(0,0,2));*/
-		/*firstTh = lastTh = new ThrownDrawable(new Cone(Vector(0,1,- 2), CHICKEN_BODY_COLOR));
-		addThr(new Cylinder(Vector(0,1,- 2), CHICKEN_BILL_COLOR));
-		addThr(new Cone(Vector(0,1,- 2), CHICKEN_LEG_COLOR));*/
 		firstCsg -> drawCsg();
 		removeCsirguru(firstCsg);
 		createCsirguru(Vector(0,0,0));
 		removeCsirguru(firstCsg);
 		createCsirguru(Vector(0,0,0));
-		
+		bomb = Bomb(cam.pos + Vector(cam.dir.x,0,cam.dir.y) * 15);
 	}
 	
 	void createCsirguru(Vector v) {
@@ -1061,7 +1075,33 @@ struct World {
 		
 	}
 	
+	void explodeBomb(Vector pos) {
+		bomb.started = 0;
+		bomb.p0 = cam.pos + Vector(cam.dir.x,0,cam.dir.y) * 15;
+		if (firstCsg == NULL) return;
+		
+		if (firstCsg -> next == NULL) {
+			if ((firstCsg -> csg -> p - pos).Length() < bomb.RANGE) removeCsirguru(firstCsg);
+			return;
+		}
+		
+		CsirguruWrapper *ptr = firstCsg-> next;
+		CsirguruWrapper *lem = firstCsg;
+		while (ptr != NULL) {
+			if ((firstCsg -> csg -> p - pos).Length() < bomb.RANGE) {
+				ptr = ptr -> next;
+				removeCsirguru(lem->next);
+			} else {
+				lem = ptr;
+				ptr = ptr -> next;
+			}
+		}
+	}
+	
 	void draw() {
+		if (!bomb.started)	bomb.start();
+		bomb.draw();
+		if (bomb.bomb.p.y < 0.1) explodeBomb(bomb.bomb.p);
 		if (firstCsg != NULL)
 			firstCsg -> drawCsg();
 		if (firstTh != NULL) {
@@ -1215,7 +1255,6 @@ void onDisplay( ) {
 	glLightfv(GL_LIGHT0, GL_POSITION, lightdir);
 	
 	setColor( GL_FRONT, GL_AMBIENT, GRAY);
-	//glMaterialfv( GL_FRONT, GL_SPECULAR, BLACK);	
 	
 	glClearColor(0.53f, 0.808f, 0.922f, 1.0f);		// torlesi szin beallitasa
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // kepernyo torles
@@ -1247,28 +1286,6 @@ void onDisplay( ) {
     glDisable(GL_TEXTURE_2D);
 	
 
-	/*Sphere a (Vector(0,1,0),1);
-	a.draw();
-	Cone b (Vector(2,3,0), 1, 1);
-	b.draw();*/
-	//Cylinder c (Vector(-2,5,0), 1, 1);
-	//c.draw();
-	
-	/*BezierCurve d (Vector(-2,0,0));
-	d.addPoint(Vector(0,0,0));
-	d.addPoint(Vector(0,0,1));
-	d.addPoint(Vector(0,1,6));
-	d.addPoint(Vector(0,2,1));
-	d.addPoint(Vector(0,6,0));
-	d.addPoint(Vector(0,2,-1));
-	d.addPoint(Vector(0,0,-1));
-	d.addPoint(Vector(0,0,0));
-	d.draw();
-	*/
-	
-	/*Vector pts[5] = {Vector(0,0,0), Vector(0,0,1), Vector(0,2,1), Vector(0,2,-1), Vector(0,0,-1)};
-	CatmullRom e (pts, 5, Vector(-2,0,0), Color(0,1,0));
-	e.draw();*/
 	
 	//CsirguruBody f(Vector(-2,2,0), Color(1,0,0));
 	//f.draw();
@@ -1292,9 +1309,6 @@ void onDisplay( ) {
 	glColor3f(0, 0, 0);
 	
 	world.draw();
-	
-	//f.draw();
-	//a.draw();
 
 	glutSwapBuffers();     				// Buffercsere: rajzolas vege
 
