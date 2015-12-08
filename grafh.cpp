@@ -423,7 +423,6 @@ struct CsirguruBody: public ColoredDrawable{
 
 struct Cone: public ColoredDrawable {
 	float r, h;
-	static const float step = 2 * M_PI / 20.0f;
 	
 	Cone(Vector p = Vector(0,0,0), Color c = Color(), float r = 1, float h = 1):
 	ColoredDrawable(p,c), r(r), h(h) {}
@@ -436,7 +435,7 @@ struct Cone: public ColoredDrawable {
 		glVertex3f(0,h,0);
 		
 		for (int i = 0; i<21;i++) {
-			float t = i * step;
+			float t = i * 2 * M_PI / 20.0f;
 			glNormal3f(cos(t),0,sin(t));
 			glVertex3f(r*cos(t), 0, r * sin(t));
 		}
@@ -449,7 +448,7 @@ struct Cone: public ColoredDrawable {
 		glVertex3f(0,0,0);
 		
 		for (int i = 0; i<21;i++) {
-			float t = i * step;
+			float t = i * 2 * M_PI / 20.0f;
 			glVertex3f(r*sin(t), 0, r * cos(t));
 		}
 		
@@ -461,7 +460,6 @@ struct Cone: public ColoredDrawable {
 
 struct Cylinder: public ColoredDrawable {
 	float r,h;
-	static const float step = 2 * M_PI / 20.0f;
 	
 	Cylinder(Vector p, Color c = Color(), float h = 1, float r=1):
 	ColoredDrawable(p,c), r(r), h(h) {}
@@ -470,7 +468,7 @@ struct Cylinder: public ColoredDrawable {
 		glBegin(GL_TRIANGLE_STRIP);
 		
 		for (int i = 0; i<21; i++) {
-			float t = i * step;
+			float t = i * 2 * M_PI / 20.0f;
 			glNormal3f(sin(t),0,cos(t));
 			glVertex3f(r*sin(t), 0, r * cos(t));
 			glVertex3f(r*sin(t), h, r * cos(t));
@@ -484,7 +482,7 @@ struct Cylinder: public ColoredDrawable {
 		glVertex3f(0,h,0);
 		
 		for (int i = 0; i<21; i++) {
-			float t = i * step;
+			float t = i * 2 * M_PI / 20.0f;;
 			glVertex3f(r*cos(t), h, r * sin(t));
 		}
 		
@@ -496,7 +494,7 @@ struct Cylinder: public ColoredDrawable {
 		glVertex3f(0,0,0);
 		
 		for (int i = 0; i<21; i++) {
-			float t = i * step;
+			float t = i * 2 * M_PI / 20.0f;
 			glVertex3f(r*sin(t), 0, r * cos(t));
 		}
 		
@@ -538,23 +536,23 @@ struct Sphere: public ColoredDrawable {
 
 
 const Color CHICKEN_CREST_COLOR (.9,0,0);
-const Color CHICKEN_BODY_COLOR (.9,.9,.6);
+Color CHICKEN_BODY_COLOR ((rand() % 256)/255.0,(rand() % 256)/255.0,(rand() % 256)/255.0);
 const Color CHICKEN_BILL_COLOR (.9,.7,.1);
 const Color CHICKEN_EYE_COLOR = BLACK;
 const Color CHICKEN_LEG_COLOR (1,1,0);
 
+static const float CHICKEN_HEIGHT_START = 0.45;
+static const float CHICKEN_BONE_RADIUS = 0.05;
+static const float CHICKEN_BONE_LENGTH = 0.3;
+	
+const static float LEG_A = 9;
+const static float LEG_V0 = 3;
+const static float LEG_V1 = sqrt(LEG_V0 * LEG_V0 - G * 2 * (2 * CHICKEN_BONE_LENGTH - CHICKEN_HEIGHT_START) );
+	
+static const float JMP_ANGLE_SIN = sinf(M_PI_4);
+static const float JMP_ANGLE_COS = cosf(M_PI_4);
+
 struct Csirguru: public Drawable {
-	
-	static const float CHICKEN_HEIGHT_START = 0.45;
-	static const float CHICKEN_BONE_RADIUS = 0.05;
-	static const float CHICKEN_BONE_LENGTH = 0.3;
-	
-	const static float A = 9;
-	const static float V1 = 2.6832;
-	const static float V0 = 3;
-	
-	static const float JMP_ANGLE_SIN = 0.7071;
-	static const float JMP_ANGLE_COS = 0.7071;
 	
 	Vector p0,rot0;
 	
@@ -599,6 +597,7 @@ struct Csirguru: public Drawable {
 						eye[1] = Sphere(head.p + Vector(0.28,0.07,0.12), CHICKEN_EYE_COLOR, 0.05);
 						
 						toe.setRotate(Vector(0,0,-90));
+						CHICKEN_BODY_COLOR = Color((rand() % 256)/255.0,(rand() % 256)/255.0,(rand() % 256)/255.0);
 					}
 	
 	void drawItem() {
@@ -606,11 +605,11 @@ struct Csirguru: public Drawable {
 		long tn = GLOBAL_TIME;
 		float dt = (tn - phase_entered) / 1000.0;
 		
-		float dx = V0 * JMP_ANGLE_COS * dt;
+		float dx = LEG_V0 * JMP_ANGLE_COS * dt;
 			
 		switch (phase) {
 			case 0:
-			c_height = CHICKEN_HEIGHT_START - V1 * dt + dt*dt/2 * A;
+			c_height = CHICKEN_HEIGHT_START - LEG_V1 * dt + dt*dt/2 * LEG_A;
 			if (c_height > 2 * CHICKEN_BONE_LENGTH) {
 				c_height = 2 * CHICKEN_BONE_LENGTH;
 				phase = 1;
@@ -621,19 +620,19 @@ struct Csirguru: public Drawable {
 				break;
 			case 1:
 			c_height = 2* CHICKEN_BONE_LENGTH;
-			setTranslate(p0 + Vector( dx * cos(rot.y * M_PI / 180) , V0 * JMP_ANGLE_SIN * dt - G / 2 * dt *dt , -dx * sin(rot.y * M_PI / 180)));
-			if (dt > V0 * JMP_ANGLE_SIN / G && V0 * JMP_ANGLE_SIN * dt < G / 2 * dt *dt + CHICKEN_BONE_RADIUS/2) {
+			setTranslate(p0 + Vector( dx * cos(rot.y * M_PI / 180) , LEG_V0 * JMP_ANGLE_SIN * dt - G / 2 * dt *dt , -dx * sin(rot.y * M_PI / 180)));
+			if (dt > LEG_V0 * JMP_ANGLE_SIN / G && LEG_V0 * JMP_ANGLE_SIN * dt < G / 2 * dt *dt + CHICKEN_BONE_RADIUS/2) {
 				setTranslate(Vector(p.x,p0.y,p.z));
 				phase = 2;
 				phase_entered = tn;
 			}
 			break;
 			case 2:
-			c_height = 2 * CHICKEN_BONE_LENGTH - V0 * dt + A / 2 * dt *dt;
+			c_height = 2 * CHICKEN_BONE_LENGTH - LEG_V0 * dt + LEG_A / 2 * dt *dt;
 			if (c_height < CHICKEN_HEIGHT_START) phase++;
 			break;
 			case 3:
-			c_height = 2 * CHICKEN_BONE_LENGTH - V0 * dt + A / 2 * dt *dt;
+			c_height = 2 * CHICKEN_BONE_LENGTH - LEG_V0 * dt + LEG_A / 2 * dt *dt;
 			if (c_height > CHICKEN_HEIGHT_START) {
 				c_height = CHICKEN_HEIGHT_START;
 				phase = 4;
@@ -771,8 +770,8 @@ struct CsirguruWrapper {
 	
 };
 
+const float BOMB_RANGE = 1.3f;
 struct Bomb {
-	static const float RANGE = 1.3f;
 	Vector p0;
 	long started;
 	Sphere bomb;
@@ -803,14 +802,14 @@ struct World {
 	Bomb bomb;
 	long csgAdded;
 	int csgCount;
-	static const int CSG_COUNT_MAX = 100;
+	static const int CSG_COUNT_MAX = 25;
 	
 	void init() {
 		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,0,1));
 		firstTh = lastTh = NULL;
 		firstCsg -> drawCsg();
 		bomb = Bomb(cam.pos + Vector(cam.dir.x,0,cam.dir.y) * 15);
-		csgAdded = 0;
+		csgAdded = GLOBAL_TIME;
 		csgCount = 1;
 	}
 	
@@ -845,7 +844,7 @@ struct World {
 	
 	void removeCsirguru(CsirguruWrapper* cs) {
 		Vector pcs = cs-> csg -> p;
-		Vector offset = pcs + Vector(0,cs->csg->c_height + cs->csg->CHICKEN_BONE_RADIUS, 0);
+		Vector offset = pcs + Vector(0,cs->csg->c_height + CHICKEN_BONE_RADIUS, 0);
 		addThr(new CsirguruBody(cs->csg->body),offset);
 		addThr(new Sphere(cs->csg->head),offset);
 		addThr(new Sphere(cs->csg->eye[0]),offset);
@@ -891,20 +890,20 @@ struct World {
 		bomb.p0 = cam.pos + Vector(cam.dir.x,0,cam.dir.y) * 15;
 		if (firstCsg == NULL) return;
 		
-		while (firstCsg != NULL && (firstCsg -> csg -> p - pos).Length() < bomb.RANGE) {
+		while (firstCsg != NULL && (firstCsg -> csg -> p - pos).Length() < BOMB_RANGE) {
 			removeCsirguru(firstCsg);
 		}
 		if (firstCsg == NULL) return;
 		
 		if (firstCsg -> next == NULL) {
-			if ((firstCsg -> csg -> p - pos).Length() < bomb.RANGE) removeCsirguru(firstCsg);
+			if ((firstCsg -> csg -> p - pos).Length() < BOMB_RANGE) removeCsirguru(firstCsg);
 			return;
 		}
 		
 		CsirguruWrapper *ptr = firstCsg-> next;
 		CsirguruWrapper *lem = firstCsg;
 		while (ptr != NULL) {
-			if ((ptr -> csg -> p - pos).Length() < bomb.RANGE) {
+			if ((ptr -> csg -> p - pos).Length() < BOMB_RANGE) {
 				ptr = ptr -> next;
 				removeCsirguru(lem->next);
 			} else {
@@ -1096,6 +1095,10 @@ void onDisplay( ) {
 void onKeyboard(unsigned char key, int x, int y) {
 	if (key == ' ') {
 		world.bomb.start();
+		glutPostRedisplay( );
+	}
+	if (key == 'r') {
+		onInitialization();
 		glutPostRedisplay( );
 	}
 	if (!world.bomb.started) {
