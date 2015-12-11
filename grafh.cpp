@@ -700,7 +700,7 @@ struct ThrownDrawable {
 		itm = wt;
 		p0 = offset + itm -> p;
 		r0 = itm -> rot;
-		v0 = Vector((rand()%10) / 5.0  -1, (rand()%5) / 5.0 + 4, (rand()%10) / 5.0 -1);
+		v0 = Vector((rand()%10) / 2.5  -2, (rand()%5) / 1.0 + 4, (rand()%10) / 2.5 -2);
 		w0 = Vector((rand()%180) / 1.0, (rand()%180) / 1.0, (rand()%180) / 1.0);
 		t_start = GLOBAL_TIME;
 	}
@@ -770,7 +770,7 @@ struct CsirguruWrapper {
 	
 };
 
-const float BOMB_RANGE = 1.3f;
+const float BOMB_RANGE = 3.0f;
 struct Bomb {
 	Vector p0;
 	long started;
@@ -802,7 +802,7 @@ struct World {
 	Bomb bomb;
 	long csgAdded;
 	int csgCount;
-	static const int CSG_COUNT_MAX = 25;
+	static const int CSG_COUNT_MAX = 125;
 	
 	void init() {
 		firstCsg = lastCsg = new CsirguruWrapper(Vector(0,0,1));
@@ -1102,7 +1102,7 @@ void onKeyboard(unsigned char key, int x, int y) {
 		glutPostRedisplay( );
 	}
 	if (!world.bomb.started) {
-		float UNIT = .5;
+		float UNIT = .1;
 		if (key == 'a') {
 			world.cam.pos = world.cam.pos - Vector(UNIT,0,0);
 			glutPostRedisplay( );
@@ -1139,7 +1139,7 @@ void onMouseMotion(int x, int y)
 
 void onIdle( ) {
 	GLOBAL_TIME =glutGet(GLUT_ELAPSED_TIME);
-	if (GLOBAL_TIME > world.csgAdded + 1000) world.addCsgUnderBomb();
+	if (GLOBAL_TIME > world.csgAdded + 100) world.addCsgUnderBomb();
 	glutPostRedisplay( );
 }
 
